@@ -7,8 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium import webdriver
 
-from conftest import Select
-from conftest import url
+from ui_framework.conftest import Select
+from ui_framework.conftest import url
 
 
 #登录

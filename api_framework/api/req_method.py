@@ -1,6 +1,6 @@
 #encoding=utf-8
 import requests,json
-from API_case.API_data import Config
+from api_framework.API_case.API_data import Config
 
 class UserAPI:
     # {route} 接口路径
