@@ -1,35 +1,35 @@
-#coding=gbk
+#encoding=utf-8
 import requests,json
 from API_case.API_data import Config
 
 class UserAPI:
-    # {route} ½Ó¿ÚÂ·¾¶
+    # {route} æ¥å£è·¯å¾„
     @staticmethod
-    def get(route):#getÇëÇó
+    def get(route):#getè¯·æ±‚
         url = f"{Config.api_host}{route}"
         response = requests.get(url=url, headers=Config.headers)
         return response
 
     @staticmethod
-    def post(route,data):#postÇëÇó ´«json
+    def post(route,data):#postè¯·æ±‚ ä¼ json
         url = f"{Config.api_host}{route}"
         response = requests.post(url=url, headers=Config.headers_json, data=json.dumps(data))
         return response
 
     @staticmethod
-    def post_biaodan(route, data):  # postÇëÇó ´«±íµ¥
+    def post_biaodan(route, data):  # postè¯·æ±‚ ä¼ è¡¨å•
         url = f"{Config.api_host}{route}"
         response = requests.post(url=url, headers=Config.headers, data=data)
         return response
 
     @staticmethod
-    def put(route, data):#putÇëÇó
+    def put(route, data):#putè¯·æ±‚
         url = f"{Config.api_host}{route}"
         response = requests.put(url=url, headers=Config.headers_json, data=json.dumps(data))
         return response
 
     @staticmethod
-    def delete(route):#deleteÇëÇó
+    def delete(route):#deleteè¯·æ±‚
         url = f"{Config.api_host}{route}"
         response = requests.delete(url=url, headers=Config.headers)
         return response
