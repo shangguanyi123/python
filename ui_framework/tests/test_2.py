@@ -1,13 +1,11 @@
 #encoding=utf-8
 import re
 import time
-from selenium.webdriver import Keys, ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
 
-from conftest import Select
-from conftest import url
+
+from ui_framework.conftest import Select,url,token,session
 
 
 #未登录
@@ -71,13 +69,11 @@ class TestUi():
         assert click_instance.check_element_presence(By.XPATH,
                                                      '//*[@id="search-prd-box"]/div[2]/div[1]/div[1]/div[1]/img') == True  # 结构图
         click_instance.click(By.XPATH,'//*[@id="search-prd-box"]/div[2]/div[1]/div[1]/div[1]/div/a[2]')#相似结构
-        driver.switch_to.window(driver.window_handles[1])#切换到结构式检索首页面
         assert f'{url}structure_search?pid=' in driver.current_url
         assert click_instance.check_element_presence(By.XPATH,'/html/body/div[3]/section/div') == True  # 存在结构式检索模块
         click_instance.click(By.XPATH, '//*[@id="form-structure-search"]/div/div[1]')  # 精准检索
         assert click_instance.check_element_presence(By.XPATH,'//*[@id="form-structure-search"]/div/div[1]/span') == True  # 存在结果
-        driver.close()
-        driver.switch_to.window(driver.window_handles[0])#切换到搜索结果页
+        driver.back()
         gongyingshang = driver.find_element(By.XPATH,'//*[@id="search-prd-box"]/div[2]/div[1]/div[1]/div[2]/div[2]/a[1]/span').text#供应商信息
         click_instance.click(By.XPATH,'//*[@id="search-prd-box"]/div[2]/div[1]/div[1]/div[2]/div[2]/a[1]')#进入供应商页面
         gys = driver.find_element(By.CLASS_NAME,'supplier-num').text
@@ -161,9 +157,9 @@ class TestUi():
         cas = driver.find_element(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[1]/div[2]/div/div[4]/div[2]').text
         assert cas == '100-51-6'
         wangzhi = driver.find_element(By.XPATH,
-                                      '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[9]/div[2]/div[2]/div[1]/div[2]').text
+                                      '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[2]/div[2]/div[1]/div[2]/a').text
         click_instance.click(By.XPATH,
-                             '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[9]/div[2]/div[2]/div[1]/div[2]/a')  # 公司网址
+                             '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[2]/div[2]/div[1]/div[2]/a')  # 公司网址
         driver.switch_to.window(driver.window_handles[1])
         assert wangzhi == driver.current_url
         assert click_instance.check_element_presence(By.XPATH, '/html/body/div/section/div[3]/div[2]') == True
@@ -286,7 +282,7 @@ class TestUi():
         click_instance.click(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[2]/div[2]/div[2]')  # 清楚所选条件
         time.sleep(1)
         gys_shuliang_new = driver.find_element(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[2]/div[1]/span').text
-        assert gys_shuliang_new == '（37）'
+        assert gys_shuliang_new == '（42）'
         # 进入供应商首页
         click_instance.hover(By.XPATH,
                              '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[1]/div[1]')  # 悬停在第一个供应商名称上面
@@ -329,19 +325,37 @@ class TestUi():
     def test_6(self,driver):
         driver.delete_all_cookies()
         click_instance = Select(driver)
-        driver.get(f'{url}search?query=118-55-8')
-        click_instance.click(By.XPATH,'//*[@id="search-prd-box"]/div[2]/div[1]/div[1]/div[2]/div[2]/a[2]')#点击化学性质
+        driver.get(f'{url}search?query=100510-65-4')
+        click_instance.click(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div[1]/div[2]/div[2]/a[2]')  # 点击化学性质
         driver.switch_to.window(driver.window_handles[1])
-        cas = driver.find_element(By.XPATH,'/html/body/div[2]/section/div/div[1]/div[1]/div[4]/div[1]/div[1]/span[2]').text
-        click_instance.click(By.XPATH,'/html/body/div[2]/section/div/div[2]/div[1]/div')#编辑结构式
+        cas = driver.find_element(By.XPATH,
+                                  '/html/body/div[2]/section/div/div[1]/div[1]/div[4]/div[1]/div[1]/span[2]').text
+        click_instance.click(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[1]/div')  # 编辑结构式
         assert cas in driver.current_url
         time.sleep(1)
-        click_instance.click(By.XPATH,'//*[@id="form-structure-search"]/div/div[1]/span')#精准匹配
-        jgs_cas = driver.find_element(By.XPATH,'//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[1]/div[1]/div[2]/a').text
+        click_instance.click(By.XPATH, '//*[@id="form-structure-search"]/div/div[1]/span')  # 精准匹配
+        jgs_cas = driver.find_element(By.XPATH,
+                                      '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[1]/div[1]/div[2]/a').text
         assert jgs_cas == cas
+        gys = driver.find_element(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[2]/a[1]').text
+        assert '家' in gys
+        tupu = driver.find_element(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[2]/span').text
+        assert tupu == '图谱'
+        jiage = driver.find_element(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[2]/a[3]').text
+        assert jiage == '价 格'
+        cookies = [
+            {'domain': 'www.ichembio.com', 'name': 'qs_session', 'path': '/', 'value': session},
+            {'domain': 'www.ichembio.com', 'name': 'XSRF-TOKEN', 'path': '/', 'value': token}
+
+        ]
+        for i in cookies:
+            driver.add_cookie(i)
+        driver.refresh()
+        driver.refresh()
+        assert click_instance.check_element_presence(By.XPATH,'//*[@id="search-prd-box"]/div[2]') == True #登录后存在产品模块
         driver.back()
         time.sleep(1)
-        click_instance.click(By.XPATH,'//*[@id="form-structure-search"]/div/div[2]/span')#子结构
+        click_instance.click(By.XPATH, '//*[@id="form-structure-search"]/div/div[2]/span')  # 子结构
         assert click_instance.check_element_presence(By.XPATH,'//*[@id="search-prd-box"]/div[2]/div[1]') == True  # 存在搜索结果模块
         driver.back()
         time.sleep(1)
@@ -421,6 +435,9 @@ class TestUi():
         assert wenben == '抱歉，您访问的页面无法显示或已不存在。'
         # 查价格
         driver.get(f'{url}prices?query=火锅店方便')
+        wenben = driver.find_element(By.CLASS_NAME, 'null-result').text
+        assert wenben == '抱歉，没有查询到结果哦~'
+        driver.get(f'{url}prices?query=1')
         wenben = driver.find_element(By.CLASS_NAME, 'null-result').text
         assert wenben == '抱歉，没有查询到结果哦~'
         # 海关编码
