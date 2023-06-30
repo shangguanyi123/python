@@ -2,8 +2,8 @@
 import time
 import requests
 import json
-from API_case.API_data import Data_API2
-from api.req_method import UserAPI
+from api_framework.API_case.API_data import Data_API2
+from api_framework.api.req_method import UserAPI
 
 url = "http://221.226.240.154:28090"
 

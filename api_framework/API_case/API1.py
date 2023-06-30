@@ -1,7 +1,7 @@
 #coding=gbk
 import time
-from API_case.API_data import Data_API1
-from api.req_method import UserAPI
+from api_framework.API_case.API_data import Data_API1
+from api_framework.api.req_method import UserAPI
 
 
 dqsj = time.strftime("%Y-%m-%d")
