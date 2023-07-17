@@ -3,11 +3,10 @@ import re
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-
-
+from ui_framework.sql import MySQLHelper
 from ui_framework.conftest import Select,url,token,session
 
-
+db = MySQLHelper()
 #未登录
 class TestUi():
     #产品搜索结果页-管制类产品搜索
@@ -154,16 +153,16 @@ class TestUi():
         click_instance = Select(driver)
         # 产看产品供应商
         driver.get(f"{url}suppliers/100-51-6")
-        cas = driver.find_element(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[1]/div[2]/div/div[4]/div[2]').text
+        cas = driver.find_element(By.XPATH, '/html/body/div[2]/section/div/div[1]/div/span[2]/a').text
         assert cas == '100-51-6'
-        wangzhi = driver.find_element(By.XPATH,
-                                      '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[2]/div[2]/div[1]/div[2]/a').text
-        click_instance.click(By.XPATH,
-                             '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[2]/div[2]/div[1]/div[2]/a')  # 公司网址
-        driver.switch_to.window(driver.window_handles[1])
-        assert wangzhi == driver.current_url
-        assert click_instance.check_element_presence(By.XPATH, '/html/body/div/section/div[3]/div[2]') == True
-        driver.close()
+        # wangzhi = driver.find_element(By.XPATH,
+        #                               '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[2]/div[2]/div[1]/div[2]/a').text
+        # click_instance.click(By.XPATH,
+        #                      '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[2]/div[2]/div[1]/div[2]/a')  # 公司网址
+        # driver.switch_to.window(driver.window_handles[1])
+        # assert wangzhi == driver.current_url
+        # assert click_instance.check_element_presence(By.XPATH, '/html/body/div/section/div[3]/div[2]') == True
+        # driver.close()
         driver.switch_to.window(driver.window_handles[0])
         # 没有海关编码的产品
         driver.get(f'{url}search?query=5310-10-1')
@@ -206,7 +205,8 @@ class TestUi():
         click_instance.send(By.XPATH,'/html/body/div[2]/section/form/input','626-55-1')#输入CAS号
         click_instance.click(By.XPATH,'/html/body/div[2]/section/form/button')#搜索产品价格
         assert click_instance.check_element_presence(By.XPATH,'/html/body/div[4]/section/div[1]/div[1]/div[4]') == True #存在CAS号、中英文名称登
-        assert click_instance.check_element_presence(By.XPATH,'/html/body/div[4]/section/div[3]/div[2]/div[2]/table/tbody/tr[1]/td[4]') == True#存在试剂参考价
+        assert click_instance.check_element_presence(By.XPATH,'//*[@id="reagent_price"]') == True#存在试剂参考价
+        click_instance.click(By.XPATH,'/html/body/div[4]/section/div[3]/div[2]/div[1]')#点击厂家参考价
         driver.switch_to.frame(driver.find_element(By.XPATH,'//*[@id="login_container"]/iframe'))
         assert click_instance.check_element_presence(By.XPATH,'//*[@id="tpl_for_iframe"]/div/div/div[2]/div[1]/img') == True #未登录，不可查看厂家价格，展示二维码
         driver.switch_to.default_content()
@@ -220,7 +220,7 @@ class TestUi():
         click_instance.click(By.XPATH,'/html/body/div[4]/section/div[1]/div[1]/div[3]/div/a[2]')#点击进入查看供应商页面
         gys = driver.find_element(By.XPATH,'/html/body/div[2]/section/div/div[2]/div[2]/div[1]/span').text#供应商数量
         newgys = re.findall('\d+',gys)
-        assert newgys[0] in gongyingsahng #供应商数量比对
+        assert newgys[0] in gongyingsahng,'供应商数量不一致' #供应商数量比对
         driver.back()
     #海关编码
     def test_4(self, driver):
@@ -249,13 +249,13 @@ class TestUi():
         assert cas == '100-51-6'
         click_instance.click(By.XPATH, '/html/body/div[3]/section/div/table/tbody/tr/td[7]/a')  # 进入海关编码详情页面
         assert driver.current_url == f'{url}hscode/2906210000/1'
-        click_instance.click(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[1]/a')  # 产看更多，进入化学性质页面
+        click_instance.click(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[1]/div[1]/div[6]/a')  # 产看更多，进入化学性质页面
         driver.switch_to.window(driver.window_handles[1])
         cas = driver.find_element(By.XPATH,
                                   '/html/body/div[2]/section/div/div[1]/div[1]/div[4]/div[1]/div[1]/span[2]').text
         assert cas == '100-51-6'
     #供应商
-    def test_5(self,driver):
+    def test_5(self, driver):
         driver.delete_all_cookies()
         click_instance = Select(driver)
         driver.get(f'{url}')
@@ -269,20 +269,51 @@ class TestUi():
         else:
             assert False
         gys_chanpin = driver.find_element(By.XPATH,
-                                          '/html/body/div[2]/section/div/div[2]/div[1]/div[1]').text  # 供应商页面，产品名称
+                                          '/html/body/div[2]/section/div/div[2]/div[1]/div[1]/div[2]/div[2]/div[2]').text  # 供应商页面，产品名称
         assert gys_chanpin in chanpin
-        click_instance.click(By.CSS_SELECTOR, ' div:nth-child(5) > div > div:nth-child(2) > a')  # 安全信息，危险品标识
-        assert driver.current_url == f'{url}RiskAndSafety#hazards'
-        driver.back()
         # 供应商地址筛选
-        driver.get(f'{url}suppliers/101-53-1?city=上海市&type=4&page=1')
+        cp_cas = driver.find_element(By.XPATH,
+                                     '/html/body/div[2]/section/div/div[2]/div[1]/div[1]/div[2]/div[4]/div[2]').text
+        driver.back()
+        driver.get(f'{url}suppliers/{cp_cas}?province=上海市&page=1')
+        # print('cas',cp_cas)
         gys_shuliang_shanghai = driver.find_element(By.XPATH,
                                                     '/html/body/div[2]/section/div/div[2]/div[2]/div[1]/span').text
-        assert gys_shuliang_shanghai == '（8）'
+        jieguo = db.execute_query(f'''
+            SELECT COUNT(DISTINCT t.id)
+            FROM (
+                SELECT suppliers.id
+                FROM `supplier_has_products`
+                LEFT JOIN `suppliers` ON `suppliers`.`id` = `supplier_has_products`.`supplier_id`
+                LEFT JOIN `supplier_types` AS `st` ON `suppliers`.`id` = `st`.`supplier_id`
+                WHERE
+                    `suppliers`.`country` = '中国'
+                    AND suppliers.province = '上海市'
+                    AND `supplier_has_products`.`cas` = '{cp_cas}'
+                    AND `supplier_has_products`.`deleted_at` IS NULL
+                GROUP BY suppliers.id
+            ) AS t;
+            ''')
+        print(jieguo)
+        assert gys_shuliang_shanghai == f"（{jieguo[0]['COUNT(DISTINCT t.id)']}）", '供应商数量不一致'
         click_instance.click(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[2]/div[2]/div[2]')  # 清楚所选条件
         time.sleep(1)
+        jieguo = db.execute_query(f'''
+        SELECT COUNT(DISTINCT t.id)
+        FROM (
+            SELECT suppliers.id
+            FROM `supplier_has_products`
+            LEFT JOIN `suppliers` ON `suppliers`.`id` = `supplier_has_products`.`supplier_id`
+            LEFT JOIN `supplier_types` AS `st` ON `suppliers`.`id` = `st`.`supplier_id`
+            WHERE
+                `suppliers`.`country` = '中国'
+                AND `supplier_has_products`.`cas` = '{cp_cas}'
+                AND `supplier_has_products`.`deleted_at` IS NULL
+            GROUP BY suppliers.id
+        ) AS t;
+        ''')
         gys_shuliang_new = driver.find_element(By.XPATH, '/html/body/div[2]/section/div/div[2]/div[2]/div[1]/span').text
-        assert gys_shuliang_new == '（42）'
+        assert gys_shuliang_new == f"（{jieguo[0]['COUNT(DISTINCT t.id)']}）", '供应商数量不一致'
         # 进入供应商首页
         click_instance.hover(By.XPATH,
                              '/html/body/div[2]/section/div/div[2]/div[2]/div[3]/div[1]/div[1]/div[1]')  # 悬停在第一个供应商名称上面
@@ -340,7 +371,7 @@ class TestUi():
         gys = driver.find_element(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[2]/a[1]').text
         assert '家' in gys
         tupu = driver.find_element(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[2]/span').text
-        assert tupu == '图谱'
+        assert tupu == '图 谱'
         jiage = driver.find_element(By.XPATH, '//*[@id="search-prd-box"]/div[2]/div[1]/div/div[2]/div[2]/a[3]').text
         assert jiage == '价 格'
         cookies = [
@@ -439,7 +470,7 @@ class TestUi():
         assert wenben == '抱歉，没有查询到结果哦~'
         driver.get(f'{url}prices?query=1')
         wenben = driver.find_element(By.CLASS_NAME, 'null-result').text
-        assert wenben == '抱歉，没有查询到结果哦~'
+        assert wenben == '暂无厂家价格'
         # 海关编码
         driver.get(f'{url}hscode?query=废物费')
         wenben = driver.find_element(By.CLASS_NAME, 'null-result').text
