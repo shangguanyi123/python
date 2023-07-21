@@ -8,8 +8,8 @@ from selenium.webdriver import ActionChains, Keys
 from API_bot import Robot
 
 url = 'https://www.ichembio.com/'
-session = 'eyJpdiI6IktmVVVIOUkxd2IvYjV1TG5HK2liZnc9PSIsInZhbHVlIjoibUhHSmN6TTc3a1h6VXhEQW5oMlorYXdtRmZ6R29kbDVNZkhvbDcvZnFtRlliWVNVbXlibEZLSlhVdVhWYnRudHVFOHNOMTl3bURhNExCc0gzZkNaVFd1VnlIMEU1RWU1UDliZjkrUjNSSExEblZNVlZqU0hjUVZBVU01Y2R2ejMiLCJtYWMiOiI3NGU3YTZkNDliZGZkYjBmZmQyNDYwOTM2YTA1ZGYyNjgzYmZmNzZiMjlkNTliZmJjYzRlNmJiYTUxYTAxNjQ2IiwidGFnIjoiIn0%3D'
-token   = 'eyJpdiI6ImRCT3FuRnAvc2pQTy90L0Ezajk0amc9PSIsInZhbHVlIjoiN0pwWG8xU1pScEtmckphbmRMZVhBdjlsUEhuNS9pL0xXTFpGS09meUZ2OWt6ckxWNDFNL3lkOVd6YlJEOVNodldOdmVuUS9FdndDSzAzQkU5bFIvcEJoMkJBRXFSNEFOVWsweXY0cFFvSHlmYURzbVBTYkx0ZnNpWnhNZ2ZRNGgiLCJtYWMiOiJhYjczODRjNmRiZGQ3YWZhMGJhMzU5OGEyODA0OGY2NGQ3YjcyNDhhOTA2NzUxZTZkN2YyZjY3YjljMDhkNDdiIiwidGFnIjoiIn0%3D'
+session = 'eyJpdiI6InYxMlRPQkhWVWZ2NnFKWkpDcmoxcUE9PSIsInZhbHVlIjoiVjUxYUc2Tmh6VmZ4Ri9wN251MW1tYzQzV21jUWoxY1FGbkNqVXlva3NiRUFUQWFrSU1weVdsODRlUGlvbUxkVnBSUWtENWhOeGxmYnpGc3cvaFBIelpDd2N5T25EYWRRTVZZbGFHVlBnekJ5RERPRzRQK1hTU01POWNtSGM0S0MiLCJtYWMiOiIyMjYyNjJjMzk1ODI4MjQxZWY3ZDQ5NWM3Y2U0NzE2ZjM1YzIxZDE0MjA5YTNkNjU3ZDUyMGEwZDczNzc5NTk2IiwidGFnIjoiIn0%3D'
+token   = 'eyJpdiI6InYxMlRPQkhWVWZ2NnFKWkpDcmoxcUE9PSIsInZhbHVlIjoiVjUxYUc2Tmh6VmZ4Ri9wN251MW1tYzQzV21jUWoxY1FGbkNqVXlva3NiRUFUQWFrSU1weVdsODRlUGlvbUxkVnBSUWtENWhOeGxmYnpGc3cvaFBIelpDd2N5T25EYWRRTVZZbGFHVlBnekJ5RERPRzRQK1hTU01POWNtSGM0S0MiLCJtYWMiOiIyMjYyNjJjMzk1ODI4MjQxZWY3ZDQ5NWM3Y2U0NzE2ZjM1YzIxZDE0MjA5YTNkNjU3ZDUyMGEwZDczNzc5NTk2IiwidGFnIjoiIn0%3D'
 
 
 
@@ -17,6 +17,7 @@ token   = 'eyJpdiI6ImRCT3FuRnAvc2pQTy90L0Ezajk0amc9PSIsInZhbHVlIjoiN0pwWG8xU1pSc
 def driver(request):
     options = webdriver.ChromeOptions()  # 定义一个 ChromeOptions 对象，可以用来设置启动 Chrome 浏览器的一些参数。
     #options.add_argument('--headless')  # 开启无界面模式（无窗口运行）
+    #options.add_argument('blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
     # 去掉不安全提示short
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
@@ -28,7 +29,6 @@ def driver(request):
     cookies = [
         {'domain': 'www.ichembio.com', 'name': 'qs_session', 'path': '/', 'value': session},
         {'domain': 'www.ichembio.com', 'name': 'XSRF-TOKEN', 'path': '/', 'value': token}
-
     ]
     for i in cookies:
         driver.add_cookie(i)
@@ -58,9 +58,9 @@ def pytest_runtest_makereport(item, call):
             os.makedirs(screenshot_dir, exist_ok=True)  # 确保截图保存的目录存在。如果目录不存在，则创建目录。
             screenshot_path = os.path.join(screenshot_dir,
                                            "报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
-            screenshot = pyautogui.screenshot()
-            screenshot.save(screenshot_path) #截图全屏 在无窗口模式下无用
-            #driver.save_screenshot(screenshot_path)  # 调用 WebDriver 对象的save_screenshot() 方法保存屏幕截图到指定路径。
+            # screenshot = pyautogui.screenshot()
+            # screenshot.save(screenshot_path) #截图全屏 在无窗口模式下无用
+            driver.save_screenshot(screenshot_path)  # 调用 WebDriver 对象的save_screenshot() 方法保存屏幕截图到指定路径。
             print("报错截图另存为:", screenshot_path)
             logging.info("报错截图另存为：%s", screenshot_path)
         except NoSuchElementException as e:
@@ -69,19 +69,37 @@ def pytest_runtest_makereport(item, call):
         except Exception as e:
             print("未能捕获屏幕截图:", e)
             logging.info("未能捕获屏幕截图：%s", e)
-
-
+#获取测试用例总数量
+def pytest_collection_modifyitems(config, items):
+    total_test_cases = len(items)
+    config._total_test_cases = total_test_cases  # 将total_test_cases存储在config对象中
 # 发送测试报告
-@pytest.hookimpl()
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    if exitstatus == pytest.ExitCode.OK:  # 测试用例全部运行成功
-        report_path = terminalreporter._session.config.option.htmlpath  # 获取测试报告路径
-        if report_path:  # 如果测试报告存在
-            Robot().APIwenjian(report_path)  # 发送测试报告到企业微信
-    elif exitstatus == pytest.ExitCode.TESTS_FAILED:  # 测试用例有运行失败的
-        report_path = terminalreporter._session.config.option.htmlpath  # 获取测试报告路径
-        if report_path:
-            Robot().APIwenjian(report_path)  # 发送测试报告到企业微信
+@pytest.hookimpl(tryfirst=True)
+def pytest_terminal_summary(terminalreporter, exitstatus,config):
+    total_test_cases = config._total_test_cases  # 获取total_test_cases的值
+    # 多线程运行测试用例，只发送最后一次测试报告 4线程
+    shuliang = total_test_cases / 4
+    if shuliang == int(total_test_cases):
+        result = int(total_test_cases)
+    else:
+        result = int(total_test_cases) + 1
+    a = 1
+    while True:
+        if a != result :
+            a += 1
+        else:
+            if exitstatus == pytest.ExitCode.OK:  # 测试用例全部运行成功
+                report_path = terminalreporter._session.config.option.htmlpath  # 获取测试报告路径
+                if report_path:  # 如果测试报告存在
+                    Robot().APIwenjian(report_path)  # 发送测试报告到企业微信
+                    break
+            elif exitstatus == pytest.ExitCode.TESTS_FAILED:  # 测试用例有运行失败的
+                report_path = terminalreporter._session.config.option.htmlpath  # 获取测试报告路径
+                if report_path:
+                    Robot().APIwenjian(report_path)  # 发送测试报告到企业微信
+                    break
+
+
 
 
 class Select:
