@@ -4,7 +4,7 @@ import pytest, time, logging, os
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver import ActionChains, Keys
-
+from Email import send_email
 from API_bot import Robot
 
 url = 'https://www.ichembio.com/'
@@ -77,11 +77,13 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     if exitstatus == pytest.ExitCode.OK:  # 测试用例全部运行成功
         report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
         if report_path:
-            Robot().APIwenjian(report_path)
+            Robot().APIwenjian(report_path) #企业微信
+            #send_email([report_path]) #发邮件
     elif exitstatus == pytest.ExitCode.TESTS_FAILED: # 测试用例有运行失败的
         report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
         if report_path:
             Robot().APIwenjian(report_path)
+            #send_email([report_path])
 
 
 class Select:
