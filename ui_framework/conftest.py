@@ -69,37 +69,19 @@ def pytest_runtest_makereport(item, call):
         except Exception as e:
             print("未能捕获屏幕截图:", e)
             logging.info("未能捕获屏幕截图：%s", e)
-#获取测试用例总数量
-def pytest_collection_modifyitems(config, items):
-    total_test_cases = len(items)
-    config._total_test_cases = total_test_cases  # 将total_test_cases存储在config对象中
-# 发送测试报告
-@pytest.hookimpl(tryfirst=True)
-def pytest_terminal_summary(terminalreporter, exitstatus,config):
-    total_test_cases = config._total_test_cases  # 获取total_test_cases的值
-    # 多线程运行测试用例，只发送最后一次测试报告 4线程
-    shuliang = total_test_cases / 4
-    if shuliang == int(total_test_cases):
-        result = int(total_test_cases)
-    else:
-        result = int(total_test_cases) + 1
-    a = 1
-    while True:
-        if a != result :
-            a += 1
-        else:
-            if exitstatus == pytest.ExitCode.OK:  # 测试用例全部运行成功
-                report_path = terminalreporter._session.config.option.htmlpath  # 获取测试报告路径
-                if report_path:  # 如果测试报告存在
-                    Robot().APIwenjian(report_path)  # 发送测试报告到企业微信
-                    break
-            elif exitstatus == pytest.ExitCode.TESTS_FAILED:  # 测试用例有运行失败的
-                report_path = terminalreporter._session.config.option.htmlpath  # 获取测试报告路径
-                if report_path:
-                    Robot().APIwenjian(report_path)  # 发送测试报告到企业微信
-                    break
 
 
+#发送测试报告
+@pytest.hookimpl(trylast=True) #该钩子函数在其他同一阶段的钩子函数执行完毕后执行
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    if exitstatus == pytest.ExitCode.OK:  # 测试用例全部运行成功
+        report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
+        if report_path:
+            Robot().APIwenjian(report_path)
+    elif exitstatus == pytest.ExitCode.TESTS_FAILED: # 测试用例有运行失败的
+        report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
+        if report_path:
+            Robot().APIwenjian(report_path)
 
 
 class Select:
