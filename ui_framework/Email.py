@@ -8,7 +8,8 @@ from email.mime.base import MIMEBase
 from email import encoders
 from email.header import Header
 
-def send_email(file_paths=None):#file_paths传的是列表
+def send_email(file_paths=None): #file_paths传列表
+    sender_name = "上官一"  # 发件人名称
     sender_email = "jws6443@163.com"  # 你的发件人邮箱（163邮箱）
     sender_password = "CEGZGOTVOFLMLVMV"  # 你的发件人邮箱密码
     receiver_email = "249185549@qq.com"  # 收件人邮箱
@@ -32,7 +33,7 @@ def send_email(file_paths=None):#file_paths传的是列表
 
         # 创建一个包含邮件内容的MIMEMultipart对象
         message = MIMEMultipart()
-        message["From"] = sender_email
+        message["From"] = Header(sender_name, "utf-8") + " <" + sender_email + ">"
         message["To"] = receiver_email
         message["Subject"] = subject
 
@@ -60,5 +61,3 @@ def send_email(file_paths=None):#file_paths传的是列表
         # 关闭连接
         if server is not None:
             server.quit()
-
-
