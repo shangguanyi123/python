@@ -9,7 +9,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from email.header import Header
 
-def send_email(file_paths=None):
+def send_email(file_paths=None):#file_paths传列表
     sender_name = "上官一"  # 发件人名称
     sender_email = "jws6443@163.com"  # 你的发件人邮箱（163邮箱）
     sender_password = "CEGZGOTVOFLMLVMV"  # 你的发件人邮箱密码
@@ -23,7 +23,7 @@ def send_email(file_paths=None):
 
     # 设置SMTP服务器和端口号（163邮箱）
     smtp_server = "smtp.163.com"
-    smtp_port = 25  # 或使用465端口（SSL加密），但需要将server.starttls()去掉
+    smtp_port = 25  # 或使用465端口（SSL加密），但需要将server.starttls()g去掉
 
     server = None  # 初始化server变量
 

@@ -4,8 +4,6 @@ import pytest, time, logging, os
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver import ActionChains, Keys
-from Email import send_email
-from API_bot import Robot
 
 url = 'https://www.ichembio.com/'
 session = 'eyJpdiI6InYxMlRPQkhWVWZ2NnFKWkpDcmoxcUE9PSIsInZhbHVlIjoiVjUxYUc2Tmh6VmZ4Ri9wN251MW1tYzQzV21jUWoxY1FGbkNqVXlva3NiRUFUQWFrSU1weVdsODRlUGlvbUxkVnBSUWtENWhOeGxmYnpGc3cvaFBIelpDd2N5T25EYWRRTVZZbGFHVlBnekJ5RERPRzRQK1hTU01POWNtSGM0S0MiLCJtYWMiOiIyMjYyNjJjMzk1ODI4MjQxZWY3ZDQ5NWM3Y2U0NzE2ZjM1YzIxZDE0MjA5YTNkNjU3ZDUyMGEwZDczNzc5NTk2IiwidGFnIjoiIn0%3D'
@@ -69,21 +67,6 @@ def pytest_runtest_makereport(item, call):
         except Exception as e:
             print("未能捕获屏幕截图:", e)
             logging.info("未能捕获屏幕截图：%s", e)
-
-
-#发送测试报告
-@pytest.hookimpl(trylast=True) #该钩子函数在其他同一阶段的钩子函数执行完毕后执行
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    if exitstatus == pytest.ExitCode.OK:  # 测试用例全部运行成功
-        report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
-        if report_path:
-            Robot().APIwenjian(report_path) #企业微信
-            #send_email([report_path]) #发邮件
-    elif exitstatus == pytest.ExitCode.TESTS_FAILED: # 测试用例有运行失败的
-        report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
-        if report_path:
-            Robot().APIwenjian(report_path)
-            #send_email([report_path])
 
 
 class Select:
