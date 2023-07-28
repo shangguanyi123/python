@@ -4,7 +4,7 @@ from Email import send_email
 from API_bot import Robot
 
 if __name__ == '__main__':
-    args = ['pytest','tests/']
+    args = ['']
     pytest.main(args)
 
     # 在测试运行后获取测试报告的目录
