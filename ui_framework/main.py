@@ -13,5 +13,5 @@ if __name__ == '__main__':
     # 调用发送邮件和企业微信的方法
     if report_path:
         Robot().APIwenjian(report_path)  # 企业微信
-        #send_email([report_path])  # 邮件
+        send_email([report_path])  # 邮件
 
