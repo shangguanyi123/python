@@ -10,7 +10,7 @@ headers = {
     }
 
 class Robot():
-    def APIwenben(self,text,name): #qywx().APIwenben('test',["shangguanyi"])
+    def APIwenben(self,text,name=None): #qywx().APIwenben('test',["shangguanyi"])
         #文本消息
         wenben = json.dumps({
             "msgtype": "text",

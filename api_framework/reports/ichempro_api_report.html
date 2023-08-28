@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="GB2312"/>
-    <title>report_api.html</title>
+    <title>ichempro_api_report.html</title>
     <style>body {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 12px;
@@ -438,8 +438,8 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
     notFoundMessage.hidden = !allRowsHidden;
 }
 </script>
-    <h1>report_api.html</h1>
-    <p>Report generated on 02-Jun-2023 at 10:15:35 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h1>ichempro_api_report.html</h1>
+    <p>Report generated on 23-Aug-2023 at 15:46:46 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
@@ -453,13 +453,13 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <td>Windows-10-10.0.19045-SP0</td></tr>
       <tr>
         <td>Plugins</td>
-        <td>{"html": "3.2.0", "metadata": "2.0.4"}</td></tr>
+        <td>{"html": "3.2.0", "metadata": "2.0.4", "rerunfailures": "12.0", "xdist": "3.3.1"}</td></tr>
       <tr>
         <td>Python</td>
         <td>3.11.2</td></tr></table>
     <h2>Summary</h2>
-    <p>9 tests ran in 140.73 seconds. </p>
-    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">8 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">1 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <p>1 tests ran in 5.44 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">1 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>, <input checked="true" class="filter" data-test-result="rerun" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="rerun">0 rerun</span>
     <h2>Results</h2>
     <table id="results-table">
       <thead id="results-table-head">
@@ -470,85 +470,19 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
           <th class="sortable links" col="links">Links</th></tr>
         <tr hidden="true" id="not-found-message">
           <th colspan="4">No results found. Try to check the filters</th></tr></thead>
-      <tbody class="failed results-table-row">
-        <tr>
-          <td class="col-result">Failed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_5</td>
-          <td class="col-duration">6.95</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="log">self = &lt;test_1.TestUi object at 0x0000027E0630F4D0&gt;<br/>driver = &lt;selenium.webdriver.chrome.webdriver.WebDriver (session=&quot;f8b5f5f2ef836f0511cfea6ac81e5fd6&quot;)&gt;<br/><br/>    def test_5(self,driver):<br/>        click_instance = Select(driver)<br/>        driver.get(f&#x27;{url}&#x27;)<br/>        click_instance.click(By.XPATH, &#x27;/html/body/div/header/div/div[2]/div[1]/div/a[4]&#x27;)  # 供应商<br/>        chanpin = driver.find_element(By.XPATH,&#x27;/html/body/div[2]/section/div/div[2]/div[1]/a[1]&#x27;).text  # 第一个供应商产品名称<br/>        click_instance.click(By.XPATH, &#x27;/html/body/div[2]/section/div/div[2]/div[1]/a[1]&#x27;)  # 第一个热搜产品供应商<br/>        gys_shuliang = driver.find_element(By.XPATH, &#x27;/html/body/div[2]/section/div/div[2]/div[2]/div[1]/span&#x27;).text<br/>        gys_shuliang_new = re.findall(r&#x27;\d+&#x27;, gys_shuliang)  # 提取数字<br/>        if gys_shuliang_new[0] != 0:<br/>            pass<br/>        gys_chanpin = driver.find_element(By.XPATH,&#x27;/html/body/div[2]/section/div/div[2]/div[1]/div[1]&#x27;).text  # 供应商页面，产品名称<br/>        assert gys_chanpin in chanpin<br/>        click_instance.click(By.CSS_SELECTOR,&#x27; div:nth-child(5) &gt; div &gt; div:nth-child(2) &gt; a&#x27;)  # 安全信息，危险品标识<br/>        assert driver.current_url == f&#x27;{url}RiskAndSafety#hazards&#x27;<br/>        driver.back()<br/>        #供应商地址筛选<br/>        driver.get(f&#x27;{url}suppliers/101-53-1?city=上海市&amp;type=4&amp;page=1&#x27;)<br/>        gys_shuliang_shanghai = driver.find_element(By.XPATH,&#x27;/html/body/div[2]/section/div/div[2]/div[2]/div[1]/span&#x27;).text<br/>&gt;       assert gys_shuliang_shanghai == &#x27;（6）&#x27;<br/><span class="error">E       AssertionError: assert &#x27;（8）&#x27; == &#x27;（6）&#x27;</span><br/><span class="error">E         - （6）</span><br/><span class="error">E         + （8）</span><br/><br/>tests\test_1.py:304: AssertionError<br/> ----------------------------Captured stderr teardown---------------------------- <br/>2023-06-02 10:14:40,094 - INFO - 报错截图另存为：E:\PycharmProjects\数据站\error_screenshot\报错截图2023-06-02 10-14-39.png
-<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_1</td>
-          <td class="col-duration">13.55</td>
+          <td class="col-name">test_1.py::test_08</td>
+          <td class="col-duration">5.33</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_2</td>
-          <td class="col-duration">18.72</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_2_A</td>
-          <td class="col-duration">8.46</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_3</td>
-          <td class="col-duration">11.01</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_4</td>
-          <td class="col-duration">8.04</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_6</td>
-          <td class="col-duration">11.88</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_7</td>
-          <td class="col-duration">17.65</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">tests/test_1.py::TestUi::test_8</td>
-          <td class="col-duration">11.34</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody></table></body></html>
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>新增辅助资料分类-修改辅助资料分类-新增辅助资料名称-修改辅助资料名称-删除辅助资料名称-删除辅助资料分类
+新增辅助资料 {&#x27;data&#x27;: {&#x27;title&#x27;: &#x27;辅助类型（测试）&#x27;, &#x27;key&#x27;: &#x27;custom_xKzwFd&#x27;, &#x27;created_user_id&#x27;: 1, &#x27;created_user_name&#x27;: &#x27;超级管理员&#x27;, &#x27;updated_at&#x27;: &#x27;2023-08-23 15:46:42&#x27;, &#x27;created_at&#x27;: &#x27;2023-08-23 15:46:42&#x27;, &#x27;id&#x27;: 8}, &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;操作成功&#x27;, &#x27;time&#x27;: 0.6356730461120605}
+修改辅助资料分类 {&#x27;data&#x27;: 1, &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;操作成功&#x27;, &#x27;time&#x27;: 0.8604230880737305}
+新增辅助资料名称 {&#x27;data&#x27;: {&#x27;key&#x27;: &#x27;custom_xKzwFd&#x27;, &#x27;extension&#x27;: {&#x27;note&#x27;: None}, &#x27;is_system&#x27;: 0, &#x27;status&#x27;: 1, &#x27;value&#x27;: {&#x27;val&#x27;: 1, &#x27;name&#x27;: &#x27;超级测试vip&#x27;}, &#x27;created_user_id&#x27;: 1, &#x27;created_user_name&#x27;: &#x27;超级管理员&#x27;, &#x27;updated_at&#x27;: &#x27;2023-08-23 15:46:43&#x27;, &#x27;created_at&#x27;: &#x27;2023-08-23 15:46:43&#x27;, &#x27;id&#x27;: 214}, &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;操作成功&#x27;, &#x27;time&#x27;: 0.5846168994903564}
+修改辅助资料名称 {&#x27;data&#x27;: {&#x27;id&#x27;: 214, &#x27;key&#x27;: &#x27;custom_xKzwFd&#x27;, &#x27;value&#x27;: {&#x27;val&#x27;: 1, &#x27;name&#x27;: &#x27;超级vip&#x27;}, &#x27;extension&#x27;: {&#x27;note&#x27;: None}, &#x27;is_system&#x27;: 0, &#x27;status&#x27;: 0, &#x27;created_user_id&#x27;: 1, &#x27;created_user_name&#x27;: &#x27;超级管理员&#x27;, &#x27;created_at&#x27;: &#x27;2023-08-23 15:46:43&#x27;, &#x27;updated_at&#x27;: &#x27;2023-08-23 15:46:44&#x27;, &#x27;deleted_at&#x27;: None}, &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;操作成功&#x27;, &#x27;time&#x27;: 0.7584261894226074}
+删除辅助资料名称 {&#x27;data&#x27;: 1, &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;操作成功&#x27;, &#x27;time&#x27;: 0.6588108539581299}
+删除辅助资料分类 {&#x27;data&#x27;: 1, &#x27;status&#x27;: 0, &#x27;message&#x27;: &#x27;操作成功&#x27;, &#x27;time&#x27;: 0.6935749053955078}
+<br/></div></td></tr></tbody></table></body></html>

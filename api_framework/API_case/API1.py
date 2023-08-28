@@ -1,438 +1,475 @@
 #coding=gbk
 import time
+import pytest
+
 from api_framework.API_case.API_data import Data_API1
 from api_framework.api.req_method import UserAPI
+from api_framework.sql import MySQLHelper
 
 
-dqsj = time.strftime("%Y-%m-%d")
 dqsj1 = time.strftime("%Y-%m-%d %H:%M:%S")
 
+class Xitongguanli():
+    user_id = ''
+    juese_id = ''
+    danwei_id = ''
+    danju_id = ''
+    danjuleixing_id = ''
+    danwei_bianma = ''
+    diqu_id = ''
+    fuzhuzilaio_fenlei_id = ''
+    fuzhuzilaio_fenlei_key = ''
+    fuzhuzilaio_mingcheng_id = ''
+    fuzhuzilaio_mingcheng_key = ''
+    fuzhushuxing_id = ''
+    fuzhushuxing_field_name = ''
+    #用户查询
+    username = ''
+    user_no = ''
+    name = ''
+    phone = ''
+    user_type = ''
+    role_id = ''
 
-class Space():
-    purchase_no = ''  # 采购订单号
-    sales_no = ''  # 销售订单号
-    caigou_id = ''  # 获取采购ID，查询、修改采购订单时会用到.
-    xiaoshou_id = ''  # 获取销售ID，查询、修改销售订单时会用到
-    ruku_id = ''  # 入库id
-    chuku_id = ''  # 出库id
-    xs_price = ''  # 销售总金额
-    cg_price = ''  # 采购总金额
-    order_id = ''  # 收款需要用到
-    chanpin_id = ''  # 产品id，修改产品信息会用到
-    number = ''  # 产品编号
-    id1 = ''  # 修改、收款、开票需要用到
-    id2 = ''  # 修改、收款、开票需要用到
-
-    # 新增采购订单
-    def add_caigou(self):
-        # 生成采购订单号
-        a = int(time.time())
-        Space.purchase_no = 'CG%s' % a
-        payload = Data_API1().add_caigou(dqsj, Space.purchase_no)
-        urloreder =  '/api/v1/erp_starter/purchase/order'
-        res = UserAPI.post(urloreder, payload)
-        print('新增采购订单', res.json())
-        assert res.json()['data']['purchase_no'] == Space.purchase_no
+    # 使用参数化装饰器定义测试用例
+    def add_user(self,status):
+        id  = int(time.time())
+        uname = f"test{id}"
+        #获取用户编号
+        url = '/api/v1/system/user/userno'
+        res = UserAPI.get(url)
+        print('获取用户编号',res.json()['data'])
+        bianhao = res.json()['data']
+        #新增用户
+        url = '/api/v1/system/user/store'
+        data = Data_API1().add_user(bianhao,uname,id,status)
+        res = UserAPI.post(url,data)
+        print('新增用户',res.json())
+        Xitongguanli.user_id = res.json()['data']['id']
+        Xitongguanli.username = res.json()['data']['username']
+        assert res.status_code == 200
+        assert res.json()['data']['name'] == uname
+        assert res.json()['data']['status'] == status,'新增用户状态不符'
+        #此接口未返回email
+    def select_user(self,status):
+        url = f'/api/v1/system/user/index?page=1&page_size=10&status={status}&search[0][user_no]=&search[0][username]={Xitongguanli.username}&search[0][name]=&org_id=1&user_no=&username={Xitongguanli.username}&name='
+        res = UserAPI.get(url)
+        assert res.status_code == 200
         assert res.json()['status'] == 0
-
-    # 查询采购订单
-    def select_caigou(self):
-        time.sleep(4)
-        urlselect_caigou =  "/api/v1/erp_starter/purchase/order?all=&prod_name=&cas=&purchase_no=%s&note=&supplier_name=&start_date=&end_date=&page_no=1&page_size=20&prod_no=" % Space.purchase_no
-        # print('查询采购URL',urlselect_caigou)
-        UserAPI.get(urlselect_caigou)
-        response = UserAPI.get(urlselect_caigou)
-        print('查询采购订单', response.json())
-        print('采购ID', response.json()['data']['data'][0]['id'])
-        Space.caigou_id = response.json()['data']['data'][0]['id']
-        assert response.json()['data']['data'][0]['purchase_no'] == Space.purchase_no  # 存在查询的采购订单号
-        assert response.json()['status'] == 0
-
-    # 修改采购订单
-    def update_caigou_order(self):
-        payload = Data_API1().update_caigou(dqsj, Space.purchase_no)
-        urlupdate_order =  '/api/v1/erp_starter/purchase/order/%s' % Space.caigou_id
-        # print('修改采购订单URL',urlupdate_order)
-        response = UserAPI.put(urlupdate_order, payload)
-        print('修改采购订单', response.json())
-        assert response.json()['message'] == '操作成功'
-        assert response.json()['status'] == 0
-        assert response.json()['data']['purchase_no'] == Space.purchase_no
-        Space.cg_price = response.json()['data']['total_price'].split('.')[0]  # 采购总金额
-
-    # 删除采购订单
-    def delect_caigou(self):
-        urldel_caigou =  "/api/v1/erp_starter/purchase/order/%s" % Space.caigou_id
-        # print('删除采购订单URL',urldel_caigou)
-        response = UserAPI.delete(urldel_caigou)
-        print('删除采购订单', response.json())
-        assert response.json()['status'] == 0
-
-    # 生成质检报告
-    def zhijianbaogao(self):
-        urlreport =  "/api/v1/erp_starter/inventory/product/qa/report/1074-82-4"
-        payload = Data_API1().zhijianbaogao(dqsj)
-
-        response = UserAPI.post(urlreport, payload)
-        print('生成质检报告', response.json())
-        assert response.json()['status'] == 0
-        assert response.json()['data']['prod_no'] == "1074-82-4"  # 产品编号
-
-    # 采购入库
-    def ruku(self):
-        urlodd_no =  '/api/v1/erp_starter/purchase/order/inventory/generate/odd'
-        res = UserAPI.get(urlodd_no)
-        # print(res.json())
-        print('查询采购号', res.json()['data']['current_odd_no'])
-        Space.ruku_id = res.json()['data']['current_odd_no']
-        urlinbound =  '/api/v1/erp_starter/purchase/order/inbound'
-        payload = Data_API1().ruku(Space.purchase_no, dqsj, Space.ruku_id)
-        response = UserAPI.post(urlinbound, payload)
-        print('采购入库', response.json())
-        assert response.json()['status'] == 0
-        assert response.json()['data']['purchase_no'] == Space.purchase_no
-
-    # 其他类入库
-    def qita_ruku(self):
-        urlqitaruku =  "/api/v1/erp_starter/inventory/inbound"
-        payload = Data_API1().qita_ruku(dqsj)
-        response = UserAPI.post(urlqitaruku, payload)
-        print('其他类入库', response.json())
-        assert response.json()['status'] == 0
-        assert response.json()['data']['prod_list'][0]['cas'] == 'QTRK-000001'
-        print('入库号', response.json()['data']['odd_no'])
-
-    # 打印入库单-需要入库才能打印
-    def dayin_ruku(self):
-        urlruku =  "/api/v1/erp_starter/purchase/order/inventory/list/%s" % Space.purchase_no
-        response = UserAPI.get(urlruku)
-        print('打印入库单', response.text)
-        assert response.json()['data'][0]['odd_no'] == Space.ruku_id
-        total_price = response.json()['data'][0]['total_price'].split('.')[0]
-        print('采购总金额', Space.cg_price, '入库单总金额', total_price)
-        assert Space.cg_price == total_price  # 采购总金额与入库单总金额对比
-
-    # 付款
-    def caigou_fukuan(self):
-        urlodd =  "/api/v1/erp_starter/purchase/order/pay/generate/odd"
-        response = UserAPI.get(urlodd)
-        # print(response.text)
-        print('付款id', response.json()['data']['current_odd_no'])
-        odd_no = response.json()['data']['current_odd_no']
-        urlfukuan =  '/api/v1/erp_starter/purchase/order/pay'
-        payload = Data_API1().caigou_fukuan(dqsj, Space.purchase_no, odd_no)
-        res = UserAPI.post(urlfukuan, payload)
-        print('付款', res.json())
-        assert res.json()['status'] == 0
-        assert res.json()['data']['purchase_no'] == Space.purchase_no
-
-    # 收票
-    def caigou_shoupiao(self):
-        urlodd =  '/api/v1/erp_starter/purchase/order/receipt/generate/odd'
-        response = UserAPI.get( urlodd)
-        # print(response.text)
-        print('收票id', response.json()['data']['current_odd_no'])
-        odd_no = response.json()['data']['current_odd_no']
-        urlshoupiao =  '/api/v1/erp_starter/purchase/order/receipt'
-        payload = Data_API1().caigou_shoupiao(dqsj, Space.purchase_no, odd_no)
-        res = UserAPI.post( urlshoupiao, payload)
-        print('收票', res.json())
-        assert res.json()['status'] == 0
-        assert res.json()['data']['purchase_no'] == Space.purchase_no
-
-    # 库存查询
-    def select_kucun(self, CAS_id):
-        time.sleep(5)
-        urlkucun =  '/api/v1/erp_starter/inventory/product?all=&prod_name=&prod_no=&cas=%s&show_0_inventory=0&page_no=1&page_size=20' % CAS_id
-        res = UserAPI.get(urlkucun)
-        # print(res.json())
-        print('剩余库存', res.json()['data']['data'][0]['weight_total_inventory'])
-        return res.json()['data']['data'][0]['weight_total_inventory']  # 剩余库存总量
-
-    # 新增销售订单
-    def add_xiaoshou(self):
-        a = int(time.time())
-        Space.sales_no = 'XS%s' % a
-        urladd_xiaoshou =  '/api/v1/erp_starter/sales/order'
-        payload = Data_API1().add_xiaoshou(dqsj, Space.sales_no)
-        res = UserAPI.post(urladd_xiaoshou, payload)
-        print('新增销售订单', res.json())
-        assert res.json()['data']['sales_no'] == Space.sales_no
-        assert res.json()['status'] == 0
-        # print('order_id', res.json()['data']['id'])
-        Space.order_id = res.json()['data']['id']
-
-    # 查询销售订单
-    def select_xiaoshou(self):
-        time.sleep(5)
-        # 商城销售订单
-        urlshop =  '/api/v1/erp_starter/sales/order?all=&cas=&customer=&start_date=&end_date=&note=&prod_name=&prod_no=&sales_no=&sales_no_and_customer=&page_no=1&page_size=20&is_bind_shop_order=1'
-        res = UserAPI.get(urlshop)
-        print('商城订单', res.json())
-        for i in range(0, 20):
-            print('商城订单index', i)
-            is_bind_shop_order = res.json()['data']['data'][i]['is_bind_shop_order']  # 商城订单
-            assert is_bind_shop_order == 1
-        # 非商城订单
-        urlshop =  '/api/v1/erp_starter/sales/order?all=&cas=&customer=&start_date=&end_date=&note=&prod_name=&prod_no=&sales_no=&sales_no_and_customer=&page_no=1&page_size=20&is_bind_shop_order=0'
-
-        res = UserAPI.get(urlshop)
-        print('非商城订单', res.text)
-        for i in range(0, 20):
-            print('非商城订单index', i)
-            is_bind_shop_order = res.json()['data']['data'][i]['is_bind_shop_order']  # 非商城订单
-            assert is_bind_shop_order == 0
-
-        urlselect_xiaoshou =  "/api/v1/erp_starter/sales/order?all=&cas=&customer=&start_date=&end_date=&note=&prod_name=&prod_no=&sales_no=%s&sales_no_and_customer=&page_no=1&page_size=20" % Space.sales_no
-        # print('查询销售订单URL',urlselect_xiaoshou)
-        UserAPI.get(urlselect_xiaoshou)
-        time.sleep(1)
-        UserAPI.get( urlselect_xiaoshou)
-        response = UserAPI.get(urlselect_xiaoshou)
-        print('查询销售订单', response.json())
-        print('销售订单ID', response.json()['data']['data'][0]['id'])
-        Space.xiaoshou_id = response.json()['data']['data'][0]['id']
-        return response.json()['data']['data'][0]['id']
-
-    # 修改销售订单
-    def update_xiaoshou_order(self):
-        urlupdate_order =  "/api/v1/erp_starter/sales/order/%s" % Space.xiaoshou_id
-        # print(urlupdate_order)
-        payload = Data_API1().update_xiaoshou_order(dqsj, dqsj1, Space.sales_no, Space.id1, Space.id2, Space.order_id)
-        response = UserAPI.put(urlupdate_order, payload)
-        print('修改销售订单', response.json())
-        assert response.json()['status'] == 0
-        Space.xs_price = response.json()['data']['total_price'].split('.')[0]  # 销售总金额
-
-    # 删除销售订单
-    def delete_xiaoshou(self):
-        del_xiaoshou =  '/api/v1/erp_starter/sales/order/%s' % Space.xiaoshou_id
-        response = UserAPI.delete( del_xiaoshou)
-        print('删除销售订单', response.json())
-        assert response.json()['status'] == 0
-
-    # 收款
-    def xiaoshou_shoukuan(self):
-        urlodd =  '/api/v1/erp_starter/sales/order/collection/generate/odd'  # 收款id
-        response = UserAPI.get(urlodd)
-        # print(response.text)
-        print('收款id', response.json()['data']['current_odd_no'])
-        odd_no = response.json()['data']['current_odd_no']
-        urlshoukuan =  '/api/v1/erp_starter/sales/order/collection'
-        # 需要改payload
-        payload = Data_API1().xiaoshou_shoukuan(dqsj, Space.sales_no, odd_no, Space.id1, Space.id2)
-        res = UserAPI.post( urlshoukuan, payload)
-        print('收款', res.json())
-        assert res.json()['status'] == 0
-        assert res.json()['data']['sales_no'] == Space.sales_no
-
-    # 批量收款
-    def xiaoshou_piliangshoukuan(self):
-        urldata =  "/api/v1/erp_starter/sales/order/collection/batch/filter?collection_status[]=1&collection_status[]=2&all=&cas=&prod_name=&note=&sales_no=&customer=天津医药&order_id="
-        UserAPI.get(urldata)
-        time.sleep(2)
-        response = UserAPI.get(urldata)
-        time.sleep(3)
-        print('未收款订单', response.json())
-        sales_no1 = response.json()['data'][0]['sales_no']
-        prod_no1 = response.json()['data'][0]['sales_order_prods'][0]['prod_no']
-        id1 = response.json()['data'][0]['sales_order_prods'][0]['id']
-        sales_no2 = response.json()['data'][1]['sales_no']
-        prod_no2 = response.json()['data'][1]['sales_order_prods'][0]['prod_no']
-        id2 = response.json()['data'][1]['sales_order_prods'][0]['id']
-        # sales_no3 = response.json()['data'][2]['sales_no']
-        # prod_no3 = response.json()['data'][2]['sales_order_prods'][0]['prod_no']
-        # id3 = response.json()['data'][2]['sales_order_prods'][0]['id']
-        # print('prod_no1', prod_no1)
-        # print('prod_no2',prod_no2)
-        # print('sales_no1', sales_no1)
-        # print('sales_no2', sales_no2)
-        # print(id1)
-        # print(id2)
-        urlpiliang =  '/api/v1/erp_starter/sales/order/collection/batch'
-        payload = Data_API1().xiaoshou_piliangshoukuan(dqsj, id1, id2, prod_no1, prod_no2, sales_no1, sales_no2)
-        response = UserAPI.post(urlpiliang, payload)
-        time.sleep(2)
-        print('批量收款', response.json())
-        assert response.json()['status'] == 0
-        assert response.json()['data'][0]['sales_no'] == sales_no1
-        assert response.json()['data'][1]['sales_no'] == sales_no2
-        # assert response.json()['data'][2]['sales_no'] == sales_no3
-
-    # 开票
-    def xiaoshou_kaipiao(self):
-        urlodd =  '/api/v1/erp_starter/sales/order/invoice/generate/odd'
-        response = UserAPI.get(urlodd)
-        # print(response.text)
-        print('开票id', response.json()['data']['current_odd_no'])
-        odd_no = response.json()['data']['current_odd_no']
-        urlkaipiao =  '/api/v1/erp_starter/sales/order/invoice'
-        payload = Data_API1().xiaoshou_kaipiao(dqsj, Space.sales_no, odd_no, Space.id1, Space.id2)
-        res = UserAPI.post(urlkaipiao, payload)
-        print('开票', res.json())
-        assert res.json()['status'] == 0
-        assert res.json()['data']['sales_no'] == Space.sales_no
-
-    # 销售发货
-    def fahuo(self):
-        # 查询发货号
-        urlodd =  "/api/v1/erp_starter/sales/order/delivery/generate/odd"
-        response = UserAPI.get(urlodd)
-        # print(response.json())
-        print('查询发货号', response.json()['data']['current_odd_no'])  # 查询发货号
-        Space.chuku_id = response.json()['data']['current_odd_no']
-        # 发货
-        order_fahuo =  "/api/v1/erp_starter/sales/order/delivery"
-        payload = Data_API1().fahuo(dqsj, Space.sales_no, Space.chuku_id, Space.id1, Space.id2)
-        response = UserAPI.post(order_fahuo, payload)
-        print("发货", response.text)
-        assert response.json()['status'] == 0
-        assert response.json()['data']['sales_no'] == Space.sales_no
-
-    # 其他类出库
-    def qita_fahuo(self):
-        urlqita =  "/api/v1/erp_starter/inventory/outbound"
-        payload = Data_API1().qita_fahuo(dqsj)
-        response = UserAPI.post(urlqita, payload)
-        print('其他类出库', response.json())
-        assert response.json()['status'] == 0
-        print('发货号', response.json()['data']['odd_no'])
-
-    # 打印发货单
-    def dayin_fahuo(self):
-        urlfahuo =  '/api/v1/erp_starter/sales/order/delivery/list/%s' % Space.sales_no
-        response = UserAPI.get(urlfahuo)
-        print('打印发货单', response.text)
-        # print('发货号',response.json()['data'][0]['odd_no'])
-        # print('Space.chuku_id',Space.chuku_id)
-        assert response.json()['data'][0]['odd_no'] == Space.chuku_id
-        # Space.xs_price = response.json()['data']['total_price'].split('.')[0]
-        total_price = response.json()['data'][0]['total_price'].split('.')[0]  # 发货订单总金额
-        print('销售总金额', Space.xs_price, '发货单总金额', total_price)
-        assert Space.xs_price == total_price  # 销售金额与发货单金额对比
-
-    # id1,id2;要放在修改销售订单后面
-    def id(self):
-        urlid =  '/api/v1/erp_starter/sales/order/%s' % Space.order_id
-        response = UserAPI.get( urlid)
-        print('id1', response.json()['data']['sales_order_prods'][0]['id'])
-        print('id2', response.json()['data']['sales_order_prods'][1]['id'])
-        Space.id1 = response.json()['data']['sales_order_prods'][0]['id']  # id1 收款需要对应的产品id
-        Space.id2 = response.json()['data']['sales_order_prods'][1]['id']  # id2
-
-    # 出入库明细查询
-    def select_churuku(self):
-        urlchuru =  '/api/v1/erp_starter/inventory/details?all=&cas=&prod_name=&prod_no=&start_date=&end_date=&page_no=1&page_size=20'
-        res = UserAPI.get(urlchuru)
-        assert res.json()['status'] == 0
+        for i in res.json()['data']['data']:
+            assert i['status'] == status,'查询用户状态不符'
+        if res.json()['data']['data']:
+            Xitongguanli.username = res.json()['data']['data'][0]['username']
+            Xitongguanli.user_no = res.json()['data']['data'][0]['user_no']
+            Xitongguanli.name = res.json()['data']['data'][0]['name']
+            Xitongguanli.phone = res.json()['data']['data'][0]['phone']
+            Xitongguanli.user_type = res.json()['data']['data'][0]['user_type']
+            Xitongguanli.user_id = res.json()['data']['data'][0]['id']
+            Xitongguanli.role_id = res.json()['data']['data'][0]['role_ids'][0]
+    def update_uesr(self,bumen,juese,status):
+        url = '/api/v1/system/user/update'
+        data = Data_API1().update_user(Xitongguanli.username,Xitongguanli.user_no,Xitongguanli.name,bumen,Xitongguanli.phone,Xitongguanli.user_type,status,juese,Xitongguanli.user_id)
+        res = UserAPI.post(url,data)
+        print('修改用户',res.json())
+        assert res.status_code == 200
         assert res.json()['message'] == '操作成功'
-
-    # 新增产品信息
-    def add_chanpin(self):
-        urlodd =  '/api/v1/erp_starter/inventory/product/generate/odd'
-        res = UserAPI.get(urlodd)  # 生成产品编号
-        print('产品编号', res.json()['data']['current_odd_no'])
-        Space.number = res.json()['data']['current_odd_no']
-        urladd =  '/api/v1/erp_starter/inventory/product'
-        data = Data_API1().add_chanpin(Space.number)
-        res = UserAPI.post(urladd, data)
-        print('新增产品', res.json())
-        Space.chanpin_id = res.json()['data']['id']
         assert res.json()['status'] == 0
-        assert Space.number == res.json()['data']['prod_no']
-
-    # 修改产品信息
-    def update_chanpin(self):
-        urlid =  '/api/v1/erp_starter/inventory/product/%s' % Space.chanpin_id
-        res = UserAPI.get( urlid)
-        # print('获取产品信息',res.json())
-        id = res.json()['data']['skus'][0]['id']
-        # print('id', res.json()['data']['skus'][0]['id'])
-        urlupdata =  '/api/v1/erp_starter/inventory/product/prod_no/%s' % Space.number
-        data = Data_API1().update_chanpin(Space.number, id)
-        res = UserAPI.put( urlupdata, data)
-        print('修改产品信息', res.json())
+        assert res.json()['data']['roles'][0]['id'] == juese,'角色不一致'
+        assert res.json()['data']['status'] == status,'状态不一致'
+        #此接口暂未返回部门字段
+    def del_user(self):
+        url = '/api/v1/system/user/destroy'
+        data  = Data_API1().del_user(Xitongguanli.user_id)
+        res = UserAPI.post(url,data)
+        print('删除用户',res.json())
+        assert res.status_code == 200
+        assert res.json()['message'] == '操作成功'
         assert res.json()['status'] == 0
-        assert res.json()['data']['cas'] == '19-0189'
-
-    # 设置产品标签
-    def set_chanpin_biaoqian(self):
-        urlset =  '/api/v1/erp_starter/inventory/product/tag/prod/%s' % Space.chanpin_id
-        payload = Data_API1().set_chanpin_biaoqian()
-        res = UserAPI.post_biaodan(urlset, payload)
-        print('设置产品标签', res.json())
+    def update_user_status(self,sel_status,update_status):
+        #查询所有用户
+        url = f'/api/v1/system/user/index?page=1&page_size=10&status={sel_status}&org_id=1'
+        sel_res = UserAPI.get(url)
+        user_id = []
+        if sel_res.json()['data']['data']:
+            for i in sel_res.json()['data']['data']:
+                user_id.append(i['id'])
+            #修改用户状态
+            url = '/api/v1/system/user/status'
+            data = Data_API1().update_user_status(user_id,update_status)
+            res = UserAPI.post(url,data)
+            assert res.status_code == 200
+            assert res.json()['message'] == '操作成功'
+            assert len(sel_res.json()['data']['data']) == res.json()['data']
+    def add_juese(self,name,status):
+        #新增角色
+        url1 = '/api/v1/system/role/store'
+        data1,data2 = Data_API1().add_juese(name,status)
+        res1 = UserAPI.post(url1,data1)
+        print('新增角色',res1.json())
+        assert res1.status_code == 200
+        assert res1.json()['status'] == 0
+        assert res1.json()['data']['status'] == status
+        Xitongguanli.juese_id = res1.json()['data']['id']
+        #角色授权,目前只加了功能权限
+        url2 = '/api/v1/system/role/assign_permissions'
+        data1, data2 = Data_API1().add_juese(name, status,Xitongguanli.juese_id)
+        res2 = UserAPI.post(url2,data2)
+        print('角色授权',res2.json())
+        assert res2.status_code == 200
+        assert res2.json()['status'] == 0
+    def insert_uesr_juese(self):
+        #添加所属角色
+        url = '/api/v1/system/role/assign_users'
+        data = Data_API1().insert_uesrt(Xitongguanli.user_id,Xitongguanli.juese_id)
+        res = UserAPI.post(url,data)
+        print('添加所属角色',res.json())
+        assert res.status_code == 200
+        #查询用户是否添加到该角色
+        url = f'/api/v1/system/role/users?page=1&page_size=10&search[0][user_no]=&search[0][username]={Xitongguanli.username}&search[0][name]=&role_id={Xitongguanli.juese_id}&user_no=&username={Xitongguanli.username}&name='
+        res = UserAPI.get(url)
+        print('查询用户是否添加到该角色',res.json()['data']['data'][0]['user']['username'])
+        assert res.status_code == 200
         assert res.json()['status'] == 0
-
-    # 删除产品
-    def delete_chanpin(self):
-        urldel =  '/api/v1/erp_starter/inventory/product/%s' % Space.chanpin_id
-        res = UserAPI.delete(urldel)
-        print('删除产品', res.json())
+        assert res.json()['data']['data'][0]['user']['username'] == Xitongguanli.username
+    def del_user_juese(self):
+        url = '/api/v1/system/role/remove_users'
+        data = Data_API1().del_user_juese(Xitongguanli.user_id,Xitongguanli.juese_id)
+        res = UserAPI.post(url,data)
+        print('删除用户所属角色',res.json())
+        assert res.status_code == 200
+        assert res.json()['message'] == '操作成功'
         assert res.json()['status'] == 0
+        url = f'/api/v1/system/role/users?page=1&page_size=10&search[0][user_no]=&search[0][username]={Xitongguanli.username}&search[0][name]=&role_id={Xitongguanli.juese_id}&user_no=&username={Xitongguanli.username}&name='
+        res = UserAPI.get(url)
+        print('删除后查询该角色',res.json()['data']['data'])
+        assert res.status_code == 200
+        assert res.json()['data']['data'] == [], '删除角色失败，角色还是存在'
+    def del_juese(self):
+        url = '/api/v1/system/role/destroy'
+        data = Data_API1().del_juese(Xitongguanli.juese_id)
+        res = UserAPI.post(url,data)
+        print('删除角色',res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        MySQLHelper().execute_delete('roles','deleted_at IS NOT NULL')
+    def add_danwei(self,leixing,danwei,zhuangtai,jl_danwei=None,jibengang=None,zhuanhualv=None):#jl_danwei:weight length area volume number_of_packages time other
+        url = '/api/v1/system/base/units/store'
+        data = Data_API1().add_danwei(leixing,danwei,zhuangtai,jl_danwei,jibengang,zhuanhualv)
+        res = UserAPI.post(url,data)
+        print('新增单位',res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        assert res.json()['data']['status'] == zhuangtai
+        assert res.json()['data']['name'] == danwei
+        Xitongguanli.danwei_bianma = res.json()['data']['code']
+        Xitongguanli.danwei_id= res.json()['data']['id']
+    def sel_danwei(self,danweileixing): #package package
+        url = f'/api/v1/system/base/units/index?page=1&page_size=10&classes={danweileixing}'
+        res = UserAPI.get(url)
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        if res.json()['data']['data']:
+            for i in res.json()['data']['data']:
+                assert i['classes'] == danweileixing
+    def update_danwei(self, leixing, danwei, zhuangtai, jl_danwei=None, jibengang=None,zhuanhualv=None):  # jl_danwei:weight length area volume number_of_packages time other
+        url = '/api/v1/system/base/units/update'
+        data = Data_API1().update_danwei(leixing, danwei, zhuangtai,Xitongguanli.danwei_id,Xitongguanli.danwei_bianma,jl_danwei, jibengang, zhuanhualv)
+        res = UserAPI.post(url, data)
+        print('修改单位', res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        assert res.json()['data']['status'] == zhuangtai
+        assert res.json()['data']['name'] == danwei
+    def del_danwei(self):
+        url = '/api/v1/system/base/units/destroy'
+        data = Data_API1().del_danwei(Xitongguanli.danwei_id)
+        res = UserAPI().post(url,data)
+        print('删除单位',res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+    def select_danjuleixing_shengheduize_id(self,dj_leixing,dj_guize):
+        # 查询单据类型，审核规则
+        url_sel = '/api/v1/system/individuation/documents/cases'
+        res_sel = UserAPI.get(url_sel)
+        assert res_sel.status_code == 200
+        assert res_sel.json()['status'] == 0
+        # print('查询到单据类型，审核规则',res_sel.json())
+        danjuleixing = {}
+        shenheguize = {}
+        # 把单据类型和审核规则存到字典
+        for i in res_sel.json()['data']['business_document_values']:
+            danjuleixing.update({i['name']: i['val']})
+        for i in res_sel.json()['data']['option_value']:
+            shenheguize.update({i['label']: i['value']})
+        # print(danjuleixing,'\n',shenheguize)
+        # 查询输入的单据类型，规则
+        keys_to_query = dj_leixing
+        leixing_id = [danjuleixing[key] for key in keys_to_query]
+        print('第一个单据类型id', leixing_id[0])
+        Xitongguanli.danjuleixing_id = leixing_id[0]
+        guize_id = shenheguize[dj_guize]
+        return leixing_id,guize_id
+    def add_danjushenhe(self,dj_leixing,dj_guize,price=None):
+        lx_id,gz_id =Xitongguanli().select_danjuleixing_shengheduize_id(dj_leixing,dj_guize)
+        # #新增单据审核
+        url_add = '/api/v1/system/individuation/documents/store'
+        data_add = Data_API1().add_danjushenhe(lx_id,gz_id,price)
+        res_add = UserAPI.post(url_add,data_add)
+        print('新增单据审核',res_add.json())
+        assert res_add.status_code == 200
+        assert res_add.json()['status'] == 0
+        Xitongguanli.danju_id = res_add.json()['data']['id']
+    def sel_danjushenhe(self):
+        url = f'/api/v1/system/individuation/documents/index?page=1&page_size=10&val={Xitongguanli.danjuleixing_id}'
+        res = UserAPI.get(url)
+        #print('查询单据审核',res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        assert res.json()['data']['data'][0]['id'] == Xitongguanli.danju_id
+        Xitongguanli.danju_id = res.json()['data']['data'][0]['id']
+    def update_danjushenhe(self,dj_leixing,dj_guize,price=None):
+        lx_id, gz_id = Xitongguanli().select_danjuleixing_shengheduize_id(dj_leixing, dj_guize)
+        url = '/api/v1/system/individuation/documents/update'
+        data = Data_API1().update_danjushenhe(Xitongguanli.danju_id,lx_id,gz_id,price)
+        res = UserAPI.post(url,data)
+        print('修改单据审核',res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        assert res.json()['data'] == 1
+    def del_danjushenhe(self):
+        url = '/api/v1/system/individuation/documents/destroy'
+        data = Data_API1().del_danjushenhe(Xitongguanli.danju_id)
+        res = UserAPI.post(url,data)
+        print('删除单据审核',res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        assert res.json()['data'] == 1
+    def gonggongcanshu_email(self):
+        url = '/api/v1/system/base/parameters/email/test'
+        data = Data_API1().gonggongcanshu_email()
+        res = UserAPI.post(url,data)
+        print('系统参数-公共参数，发送测试邮件',res.json())
+        assert res.status_code == 200
+        assert res.json()['message'] == '发送成功'
+    def add_diqu(self,status,diqu):
+        url = '/api/v1/system/base/areas/store'
+        data = Data_API1().add_diqu(status,diqu)
+        res = UserAPI.post(url,data)
+        print('新增地区',res.json())
+        assert res.status_code == 200
+        assert res.json()['data']['status'] == status
+    def sel_diqu(self,diqu):
+        url = f'/api/v1/system/base/areas/index?page=1&page_size=10&name_zh={diqu}&country_id=1'
+        res = UserAPI.get(url)
+        print('查询地区',res.json()['data']['data'])
+        assert res.status_code == 200
+        assert res.json()['data']['data'][0]['county_name'] == diqu
+        Xitongguanli.diqu_id = res.json()['data']['data'][0]['id']
+    def update_diqu(self,status,diqu):
+        url = '/api/v1/system/base/areas/update'
+        data = Data_API1().update_diqu(status,diqu,Xitongguanli.diqu_id)
+        res = UserAPI.post(url,data)
+        print('修改地区',res.json())
+        assert res.status_code == 200
+        assert res.json()['data']['status'] == status
+        assert res.json()['data']['name_zh'] == diqu
+    def del_diqu(self,diqu):
+        #删除地区
+        url = '/api/v1/system/base/areas/destroy'
+        data =Data_API1().del_diqu(Xitongguanli.diqu_id)
+        res = UserAPI.post(url,data)
+        print('删除地区',res.json())
+        assert res.status_code == 200
+        assert res.json()['data'] == 1
+        #删除后查询地区是否存在
+        url = f'/api/v1/system/base/areas/index?page=1&page_size=10&name_zh={diqu}&country_id=1'
+        res = UserAPI.get(url)
+        assert res.json()['data']['data'] == []
+    def update_biaohao_guize(self,bianmafenduan):
+        dqsj = time.strftime("%Y%m%d")
+        url = '/api/v1/system/individuation/numbering/update'
+        data = Data_API1().update_biaohao_guize(bianmafenduan)
+        res = UserAPI.post(url,data)
+        if bianmafenduan == 1:
+            print('修改编号规则',res.json())
+            assert res.status_code == 200
+            assert res.json()['data']['demo'] == '000001'
+        elif bianmafenduan == 2:
+            print('修改编号规则',res.json())
+            assert res.status_code == 200
+            assert res.json()['data']['demo'] == 'CP000001'
+        elif bianmafenduan == 3:
+            print('修改编号规则',res.json())
+            assert res.status_code == 200
+            assert res.json()['data']['demo'] == f"CP{dqsj}000001"
+        elif bianmafenduan == 4:
+            assert res.status_code != 200
+            print('修改编号规则',res.json()['message'])
+            assert res.json()['message'] == f"同一单据类别必须设置“流水号”单据规则"
+        elif bianmafenduan == 5:
+            assert res.status_code != 200
+            print('修改编号规则',res.json()['message'])
+            assert res.json()['message'] == f"同一单据类别必须设置“流水号”单据规则"
+    def sel_biaohao_guize(self,name):
+        url = f'/api/v1/system/individuation/numbering/index?page=1&page_size=10&rules_name={name}&category_name='
+        res = UserAPI.get(url)
+        print('查询编号规则',res.json()['data']['data'][0])
+        assert res.status_code == 200
+        assert res.json()['data']['data'][0]['rules_name'] == name
+    def add_fuzhuzilaio_fenlei(self,name):
+        url = '/api/v1/enums/category/store'
+        data = Data_API1().add_fuzhuziliao_feilei(name)
+        res = UserAPI.post(url,data)
+        print('新增辅助资料',res.json())
+        assert res.status_code == 200
+        Xitongguanli.fuzhuzilaio_fenlei_id = res.json()['data']['id']
+        Xitongguanli.fuzhuzilaio_fenlei_key = res.json()['data']['key']
+        assert res.json()['data']['title'] == name
+    def update_fuzhuzilaio_fenlei(self,name):
+        #修改辅助资料分类
+        url = '/api/v1/enums/category/update'
+        data = Data_API1().update_fuzhuziliao_fenlei(Xitongguanli.fuzhuzilaio_fenlei_id,name)
+        res = UserAPI.post(url,data)
+        print('修改辅助资料分类',res.json())
+        assert res.status_code == 200
+        assert res.json()['data'] == 1
+    def add_fuzhuzilaio_mingcheng(self,name,status):
+        url = '/api/v1/enums/store'
+        data = Data_API1().add_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_fenlei_key,name,status)
+        res = UserAPI.post(url,data)
+        print('新增辅助资料名称',res.json())
+        assert res.status_code == 200
+        assert res.json()['data']['status'] == status
+        assert res.json()['data']['value']['name'] == name
+        Xitongguanli.fuzhuzilaio_mingcheng_id = res.json()['data']['id']
+        Xitongguanli.fuzhuzilaio_mingcheng_key = res.json()['data']['key']
+    def update_fuzhuziliao_mingcheng(self,name,status):
+        url = '/api/v1/enums/update'
+        data = Data_API1().update_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_mingcheng_id,Xitongguanli.fuzhuzilaio_mingcheng_key,name,status)
+        res = UserAPI.post(url,data)
+        print('修改辅助资料名称',res.json())
+        assert res.status_code == 200
+        assert res.json()['data']['status'] == status
+        assert res.json()['data']['value']['name'] == name
+    def del_fuzhuziliao_mingcheng(self,name):
+        #删除辅助资料名称
+        url = '/api/v1/enums/destroy'
+        data = Data_API1().del_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_mingcheng_id)
+        res = UserAPI.post(url,data)
+        print('删除辅助资料名称',res.json())
+        assert res.status_code == 200
+        assert res.json()['data'] == 1
+        #删除后查询是否存在
+        url1 = f'/api/v1/enums/index?page=1&page_size=10&title={name}&key='
+        res1 = UserAPI.get(url1)
+        assert res1.json()['data']['data'] == []
+    def del_fuzhuziliao_fenlei(self):
+        url = '/api/v1/enums/category/destroy'
+        data = Data_API1().del_fuzhuziliao_fenlei(Xitongguanli.fuzhuzilaio_fenlei_id)
+        res = UserAPI.post(url,data)
+        print('删除辅助资料分类',res.json())
+        assert res.status_code == 200
+        assert res.json()['data'] == 1
+    def add_fuzhushuxing(self,name,type,status,len=None): # type : varchar int timestamp auxiliary_category
+        url = '/api/v1/system/individuation/profile/store'
+        data = Data_API1().add_fuzhushuxing(name,type,status,len)
+        res = UserAPI.post(url,data)
+        print('新增辅助属性',res.json())
+        assert res.status_code == 200
+        assert res.json()['data']['show_name'] == name
+        assert res.json()['data']['data_type'] == type
+        assert res.json()['data']['status'] == status
+        Xitongguanli.fuzhushuxing_id = res.json()['data']['id']
+        Xitongguanli.fuzhushuxing_field_name = res.json()['data']['field_name']
+    def update_fuzhushuxing(self,name,type,status,len=None):
+        url = '/api/v1/system/individuation/profile/update'
+        data = Data_API1().update_fuzhushuxing(Xitongguanli.fuzhushuxing_id,name,type,status,len)
+        res = UserAPI.post(url,data)
+        print('修改辅助属性',res.json())
+        assert res.status_code == 200
+        assert res.json()['data']['show_name'] == name
+        assert res.json()['data']['data_type'] == type
+        assert res.json()['data']['status'] == status
+    def del_fuzhushuxing(self):
+        url = '/api/v1/system/individuation/profile/destroy'
+        data = Data_API1().del_fuzhushuxing(Xitongguanli.fuzhushuxing_id)
+        res = UserAPI.post(url,data)
+        print('删除辅助属性',res.json())
+        assert res.status_code == 200
+        assert res.json()['data'] == 1
 
-# 新增采购订单-查询采购订单-修改采购订单-付款-收票-生成质检报告-采购入库-打印入库订单
-# print()
-# Space().add_caigou()
-# Space().select_caigou()
-# Space().update_caigou_order()
-# Space().caigou_fukuan()
-# Space().caigou_shoupiao()
-# Space().zhijianbaogao()
-# Space().ruku()
-# Space().dayin_ruku()
-# 新增销售订单-查询销售订单-修改销售订单-收款-开票-销售发货-打印发货订单
-# print()
-# Space().add_xiaoshou()
-# Space().id()
-# Space().select_xiaoshou()
-# Space().update_xiaoshou_order()
-# Space().xiaoshou_shoukuan()
-# Space().xiaoshou_kaipiao()
-# Space().fahuo()
-# Space().dayin_fahuo()
-# 新增采购订单-查询采购订单-修改采购订单-删除采购订单
-# print()
-# Space().add_caigou()
-# Space().select_caigou()
-# Space().update_caigou_order()
-# Space().delect_caigou()
-# 新增销售订单-查询销售订单-修改销售订单-删除销售订单
-# print()
-# Space().add_xiaoshou()
-# Space().select_xiaoshou()
-# Space().update_xiaoshou_order()
-# Space().delete_xiaoshou()
-# 新增采购订单-查询采购订单-修改采购订单-初始库存查询-采购入库-入库后库存查询-新增销售订单-查询销售订单-修改销售订单-销售发货-发货后库存查询
-# Space().add_caigou()
-# Space().select_caigou()
-# kucun = Space().select_kucun('1074-82-4')  # 初始库存
-# Space().update_caigou_order()
-# Space().ruku()
-# rkcun = Space().select_kucun('1074-82-4')  # 入库后的库存
-# assert kucun + 1000 == rkcun
-# Space().add_xiaoshou()
-# Space().id()
-# Space().select_xiaoshou()
-# Space().update_xiaoshou_order()
-# Space().fahuo()
-# ckkuncun = Space().select_kucun('1074-82-4')  # 出库后的库存
-# assert kucun == ckkuncun
-# 其他类出库、入库
-# kucun = Space().select_kucun('QTRK-000001') #初始库存
-# Space().qita_ruku()
-# rkkucun = Space().select_kucun('QTRK-000001') #入库后库存
-# assert kucun + 100 == rkkucun
-# Space().qita_fahuo()
-# ckkucun = Space().select_kucun('QTRK-000001') #出库后库存
-# assert rkkucun - 100 == ckkucun
-# assert kucun == ckkucun
-# 批量收款
-# Space().xiaoshou_piliangshoukuan()
-# 出入库查询
-# Space().select_churuku()
-# 新增产品-修改产品信息-设置产品标签-删除产品
-# Space().add_chanpin()
-# Space().update_chanpin()
-# Space().set_chanpin_biaoqian()
-# Space().delete_chanpin()
+
+
+
+
+
+
+
+# #新增用户-查询-修改用户(部门、角色、状态)-删除用户
+# Xitongguanli().add_user(1)
+# Xitongguanli().select_user(1)
+# Xitongguanli().update_uesr(20,1,1)
+# Xitongguanli().del_user()
+# Xitongguanli().update_user_status(0,1)
+# #新增用户-新增角色-添加用户到角色-删除用户所属角色-删除角色-删除用户
+# Xitongguanli().add_user(1)
+# Xitongguanli().add_juese('系统管理员（临时）',1)
+# Xitongguanli().insert_uesr_juese()
+# Xitongguanli().del_user_juese()
+# Xitongguanli().del_juese()
+# Xitongguanli().del_user()
+# #新增单位-查询单位-删除单位
+# Xitongguanli().add_danwei(1,'mm',1,'length',1,'0.001')
+# Xitongguanli().update_danwei(0,'mm',1,)
+# Xitongguanli().sel_danwei('package')
+# Xitongguanli().del_danwei()
+# #新增单据审核-查询单据审核-修改单据审核-删除单据审核
+# Xitongguanli().add_danjushenhe(['销售订单'],'需要审核')
+# Xitongguanli().sel_danjushenhe()
+# Xitongguanli().update_danjushenhe(['销售订单','采购订单'],'超过金额审核',10000)
+# Xitongguanli().del_danjushenhe()
+# #系统管理
+# Xitongguanli().gonggongcanshu_email()
+# #新增地区-查询地区-修改地区-删除地区
+# Xitongguanli().add_diqu(0,'测试区')
+# Xitongguanli().sel_diqu('测试区')
+# Xitongguanli().update_diqu(1,'测试地区')
+# Xitongguanli().del_diqu('测试地区')
+# #修改编号规则-查询编号规则
+# Xitongguanli().update_biaohao_guize(1)
+# Xitongguanli().update_biaohao_guize(2)
+# Xitongguanli().update_biaohao_guize(3)
+# Xitongguanli().update_biaohao_guize(4)
+# Xitongguanli().update_biaohao_guize(5)
+# Xitongguanli().sel_biaohao_guize('产品编号')
+# #新增辅助资料分类-修改辅助资料分类-新增辅助资料名称-修改辅助资料名称-删除辅助资料名称-删除辅助资料分类
+# Xitongguanli().add_fuzhuzilaio_fenlei('辅助类型（测试）')
+# Xitongguanli().update_fuzhuzilaio_fenlei('辅助类型')
+# Xitongguanli().add_fuzhuzilaio_mingcheng('超级测试vip',1)
+# Xitongguanli().update_fuzhuziliao_mingcheng('超级vip',0)
+# Xitongguanli().del_fuzhuziliao_mingcheng('超级vip')
+# Xitongguanli().del_fuzhuziliao_fenlei()
+# # 新增辅助属性-修改辅助属性-删除辅助属性
+# Xitongguanli().add_fuzhushuxing('海关编码（测试）','varchar',0,50)
+# Xitongguanli().update_fuzhushuxing('海关编码test','int',1,50)
+# Xitongguanli().del_fuzhushuxing()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
