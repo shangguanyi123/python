@@ -52,10 +52,9 @@ def pytest_runtest_makereport(item, call):
     if rep.when == "call" and rep.failed:  # 如果rep.when 的值为"call"（表示测试函数的调用阶段）并且rep.failed 为True（表示测试失败），则执行条件块中的代码。
         try:
             driver = item.funcargs["driver"]  # 通过item.funcargs 字典获取测试函数中的driver 对象。driver 是通过driver fixture 返回的 WebDriver 对象。
-            screenshot_dir = r"E:\PycharmProjects\数据站\error_screenshot"  # 截图保存目录
+            screenshot_dir = "./error_screenshot"  # 截图保存目录
             os.makedirs(screenshot_dir, exist_ok=True)  # 确保截图保存的目录存在。如果目录不存在，则创建目录。
-            screenshot_path = os.path.join(screenshot_dir,
-                                           "报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
+            screenshot_path = os.path.join(screenshot_dir,"报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
             # screenshot = pyautogui.screenshot()
             # screenshot.save(screenshot_path) #截图全屏 在无窗口模式下无用
             driver.save_screenshot(screenshot_path)  # 调用 WebDriver 对象的save_screenshot() 方法保存屏幕截图到指定路径。
