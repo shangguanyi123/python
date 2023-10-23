@@ -1,18 +1,24 @@
 # encoding=utf-8
 import pyautogui
-import pytest, time, logging, os
+import pytest, time, logging, os, threading ,json
 from selenium import webdriver
-from selenium.common import NoSuchElementException
-from selenium.webdriver import ActionChains, Keys
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver import ActionChains
+from sql import MySQLHelper_cookies
 
-url = 'https://www.ichembio.com/'
-session = 'eyJpdiI6InYxMlRPQkhWVWZ2NnFKWkpDcmoxcUE9PSIsInZhbHVlIjoiVjUxYUc2Tmh6VmZ4Ri9wN251MW1tYzQzV21jUWoxY1FGbkNqVXlva3NiRUFUQWFrSU1weVdsODRlUGlvbUxkVnBSUWtENWhOeGxmYnpGc3cvaFBIelpDd2N5T25EYWRRTVZZbGFHVlBnekJ5RERPRzRQK1hTU01POWNtSGM0S0MiLCJtYWMiOiIyMjYyNjJjMzk1ODI4MjQxZWY3ZDQ5NWM3Y2U0NzE2ZjM1YzIxZDE0MjA5YTNkNjU3ZDUyMGEwZDczNzc5NTk2IiwidGFnIjoiIn0%3D'
-token   = 'eyJpdiI6InYxMlRPQkhWVWZ2NnFKWkpDcmoxcUE9PSIsInZhbHVlIjoiVjUxYUc2Tmh6VmZ4Ri9wN251MW1tYzQzV21jUWoxY1FGbkNqVXlva3NiRUFUQWFrSU1weVdsODRlUGlvbUxkVnBSUWtENWhOeGxmYnpGc3cvaFBIelpDd2N5T25EYWRRTVZZbGFHVlBnekJ5RERPRzRQK1hTU01POWNtSGM0S0MiLCJtYWMiOiIyMjYyNjJjMzk1ODI4MjQxZWY3ZDQ5NWM3Y2U0NzE2ZjM1YzIxZDE0MjA5YTNkNjU3ZDUyMGEwZDczNzc5NTk2IiwidGFnIjoiIn0%3D'
-
-
+url = 'http://spider.aikonchem.com:48888/'
+db = MySQLHelper_cookies()
 
 @pytest.fixture(scope='function')  # 表示这是一个 pytest fixture，作用域为测试函数级别（方法级别）。
 def driver(request):
+    identity_marker = request.node.get_closest_marker("identity")
+    if identity_marker is not None:
+        username = identity_marker.args[0]
+        cookie_data = db.execute_query(f"SELECT session, token FROM cookies WHERE username = '{username}'")
+    else:
+        # 如果没有标记，默认使用 'user1' 身份
+        cookie_data = db.execute_query("select session,token from cookies where username = 'user1'")
+
     options = webdriver.ChromeOptions()  # 定义一个 ChromeOptions 对象，可以用来设置启动 Chrome 浏览器的一些参数。
     #options.add_argument('--headless')  # 开启无界面模式（无窗口运行）
     #options.add_argument('blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
@@ -25,14 +31,16 @@ def driver(request):
     driver.get(f"{url}")
     driver.implicitly_wait(8)
     cookies = [
-        {'domain': 'www.ichembio.com', 'name': 'qs_session', 'path': '/', 'value': session},
-        {'domain': 'www.ichembio.com', 'name': 'XSRF-TOKEN', 'path': '/', 'value': token}
+        {'domain': 'spider.aikonchem.com', 'name': 'qs_session', 'path': '/', 'value': cookie_data[0]['session']},
+        {'domain': 'spider.aikonchem.com', 'name': 'XSRF-TOKEN', 'path': '/', 'value': cookie_data[0]['token']}
     ]
     for i in cookies:
         driver.add_cookie(i)
     driver.refresh()
+
     request.addfinalizer(driver.quit)  # 将 WebDriver 对象的 quit() 方法注册为测试结束后的清理函数，以确保测试用例结束后关闭浏览器进程。
     return driver  # 将 WebDriver 对象返回，供测试函数使用。
+
 
 
 # 配置日志记录 其中%(asctime)s表示日志记录的时间，%(levelname)s表示日志级别，%(message)s表示日志消息内容。
@@ -52,9 +60,10 @@ def pytest_runtest_makereport(item, call):
     if rep.when == "call" and rep.failed:  # 如果rep.when 的值为"call"（表示测试函数的调用阶段）并且rep.failed 为True（表示测试失败），则执行条件块中的代码。
         try:
             driver = item.funcargs["driver"]  # 通过item.funcargs 字典获取测试函数中的driver 对象。driver 是通过driver fixture 返回的 WebDriver 对象。
-            screenshot_dir = "./error_screenshot"  # 截图保存目录
+            screenshot_dir = r"E:\PycharmProjects\印度数据站\error_screenshot"  # 截图保存目录
             os.makedirs(screenshot_dir, exist_ok=True)  # 确保截图保存的目录存在。如果目录不存在，则创建目录。
-            screenshot_path = os.path.join(screenshot_dir,"报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
+            screenshot_path = os.path.join(screenshot_dir,
+                                           "报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
             # screenshot = pyautogui.screenshot()
             # screenshot.save(screenshot_path) #截图全屏 在无窗口模式下无用
             driver.save_screenshot(screenshot_path)  # 调用 WebDriver 对象的save_screenshot() 方法保存屏幕截图到指定路径。
@@ -66,7 +75,6 @@ def pytest_runtest_makereport(item, call):
         except Exception as e:
             print("未能捕获屏幕截图:", e)
             logging.info("未能捕获屏幕截图：%s", e)
-
 
 class Select:
     def __init__(self, driver):
@@ -114,3 +122,11 @@ class Select:
             except (NoSuchElementException, IndexError):
                 return False
 
+def update_cookies(driver,username):
+    cookies = driver.get_cookies()
+    cookie_json = json.dumps(cookies, indent=2)  # 转为json
+    cookie_data = json.loads(cookie_json)  # 转为python字典
+    db.execute_update(
+        'UPDATE cookies SET token = "%s", session = "%s" WHERE username = "%s"' % (
+            cookie_data[0]['value'], cookie_data[2]['value'], username)
+    )
