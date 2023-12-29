@@ -1,10 +1,12 @@
 # encoding=utf-8
-# encoding=utf-8
 import pyautogui
 import pytest, time, logging, os, threading ,json
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import ActionChains
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from sql import MySQLHelper_cookies
 
 url = 'http://spider.aikonchem.com:48888/'
@@ -12,19 +14,17 @@ db = MySQLHelper_cookies()
 
 @pytest.fixture(scope='function')  # 表示这是一个 pytest fixture，作用域为测试函数级别（方法级别）。
 def driver(request):
-    identity_marker = request.node.get_closest_marker("identity")
+    identity_marker = request.node.get_closest_marker("identity") #获取与测试函数相标记为identity
     if identity_marker is not None:
-        username = identity_marker.args[0]
+        username = identity_marker.args[0] # 返回这个元组中的第一个参数，即user2
         cookie_data = db.execute_query(f"SELECT session, token FROM cookies WHERE username = '{username}'")
     else:
-        # 如果没有标记，默认使用 '非试剂' 身份
-        cookie_data = db.execute_query("select session,token from cookies where username = '非试剂'")
+        # 如果没有标记，默认使用 'user1' 身份
+        cookie_data = db.execute_query("select session,token from cookies where username = 'user1'")
 
     options = webdriver.ChromeOptions()  # 定义一个 ChromeOptions 对象，可以用来设置启动 Chrome 浏览器的一些参数。
     #options.add_argument('--headless')  # 开启无界面模式（无窗口运行）
-    #options.add_argument('--blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
-
-
+    #options.add_argument('blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
     # 去掉不安全提示short
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
@@ -34,8 +34,8 @@ def driver(request):
     driver.get(f"{url}")
     driver.implicitly_wait(8)
     cookies = [
-        { 'name': 'qs_session', 'path': '/', 'value': cookie_data[0]['session']},
-        { 'name': 'XSRF-TOKEN', 'path': '/', 'value': cookie_data[0]['token']}
+        {'name': 'qs_session', 'path': '/', 'value': cookie_data[0]['session']},
+        {'name': 'XSRF-TOKEN', 'path': '/', 'value': cookie_data[0]['token']}
     ]
     for i in cookies:
         driver.add_cookie(i)
@@ -63,7 +63,7 @@ def pytest_runtest_makereport(item, call):
     if rep.when == "call" and rep.failed:  # 如果rep.when 的值为"call"（表示测试函数的调用阶段）并且rep.failed 为True（表示测试失败），则执行条件块中的代码。
         try:
             driver = item.funcargs["driver"]  # 通过item.funcargs 字典获取测试函数中的driver 对象。driver 是通过driver fixture 返回的 WebDriver 对象。
-            screenshot_dir = r"E:\PycharmProjects\印度数据站\error_screenshot"  # 截图保存目录
+            screenshot_dir = r".E:\venv3.8\India_data\error_screenshot"  # 截图保存目录
             os.makedirs(screenshot_dir, exist_ok=True)  # 确保截图保存的目录存在。如果目录不存在，则创建目录。
             screenshot_path = os.path.join(screenshot_dir,
                                            "报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
@@ -79,28 +79,47 @@ def pytest_runtest_makereport(item, call):
             print("未能捕获屏幕截图:", e)
             logging.info("未能捕获屏幕截图：%s", e)
 
-class Select:
+class WebAutomation:
     def __init__(self, driver):
         self.driver = driver
-
     # 点击
-    def click(self, types, element, index=None):
+    def selenium_click(self, types, element, index=None):
         if index is None:
             next_btn = self.driver.find_element(types, element)
             self.driver.execute_script("arguments[0].click();", next_btn)
         else:
             next_btn = self.driver.find_elements(types, element)[int(index)]
             self.driver.execute_script("arguments[0].click();", next_btn)
-
     # 输入
-    def send(self, types, element, text, index=None):
+    def selenium_send(self, types, element, text, index=None):
         if index is None:
             next_btn = self.driver.find_element(types, element)
             self.driver.execute_script("arguments[0].value = arguments[1]", next_btn, text)
         else:
             next_btn = self.driver.find_elements(types, element)[index]
             self.driver.execute_script("arguments[0].value = arguments[1]", next_btn, text)
-
+    # 点击
+    def jquery_click(self, element, index=None):
+        if index is None:
+            self.driver.execute_script(f"return $('{element}')[0].click()")
+        else:
+            elements = self.driver.execute_script(f"return $('{element}')")
+            if 0 < index < len(elements):
+                element_to_click = elements[index]
+                element_to_click.click()
+            else:
+                print(f"Index {index} 超出索引范围.")
+    # 输入文本
+    def jquery_input_text(self, element, text=None, index=None):
+        if index is None:
+            self.driver.execute_script(f"return $('{element}').val('{text}')")
+        else:
+            elements = self.driver.execute_script(f"return $('{element}')")
+            if 0 < index < len(elements):
+                element_to_input = elements[index]
+                self.driver.execute_script(f"arguments[0].value = '{text}';", element_to_input)
+            else:
+                print(f"Index {index} 超出索引范围.")
     # 悬停
     def hover(self, types, element, index=None):
         if index is None:
@@ -109,7 +128,6 @@ class Select:
         else:
             but = self.driver.find_elements(types, element)[index]
             ActionChains(self.driver).move_to_element(but).perform()
-
     # 判断元素是否存在
     def check_element_presence(self, types, element, index=None):
         if index is None:
@@ -124,7 +142,6 @@ class Select:
                 return True
             except (NoSuchElementException, IndexError):
                 return False
-
     # 获取文本内容
     def text_content(self, types, element, index=None):
         if index is None:
@@ -133,6 +150,51 @@ class Select:
         else:
             info = self.driver.find_elements(types, element)[index].text
             return info
+    # 切入ifram框
+    def cut_in_ifram(self,type,element,index=None):
+        if index is None:
+            self.driver.switch_to.frame(self.driver.find_element(type, element))
+        else:
+            self.driver.switch_to.frame(self.driver.find_elements(type, element)[int(index)])
+    # 切出ifram
+    def cut_out_ifram(self):
+        self.driver.switch_to.default_content()
+    # 下拉选项框
+    def select(self,type,element,index,class_index=None):
+        if class_index is None:
+            Select(self.driver.find_element(type,element)).select_by_index(int(index))
+        else:
+            Select(self.driver.find_elements(type, element)[int(class_index)]).select_by_index(int(index))
+    # 显示等待
+    def wait(self,type,element):
+        WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((type, element)))
+    # 切换窗口
+    def switch_windows(self,index):
+        self.driver.switch_to.window(self.driver.window_handles[int(index)])
+    # 打开第二个网页
+    def opens_new_tab(self,url,index):
+        self.driver.execute_script(f"window.open('{url}');")
+        self.driver.switch_to.window(self.driver.window_handles[int(index)])
+    # 界面上下滑动
+    def up_down_slide(self,bili):
+        # bili为0表示滑动到页面最上方，1为最下方，0.65为页面从上到下的65%处,范围在0-1
+        self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight * {bili});")  # 滑动到屏幕57%处
+    # 元素滑动
+    def element_slide(self,type,element,zuoyou,sahngxia,index=None):
+        if index is None:
+            # 获取要操作的元素
+            ele = self.driver.find_element(type,element)
+            # 创建一个ActionChains对象
+            '''
+                    上滑移动50个像素 move_by_offset( 0,-50)
+                    下滑移动50个像素 move_by_offset( 0, 50)
+                    左滑移动50个像素 move_by_offset(-50, 0)
+                    右滑移动50个像素 move_by_offset( 50, 0)
+            '''
+            ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, sahngxia).perform()
+        else:
+            ele = self.driver.find_elements(type, element)[int(index)]
+            ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, sahngxia).perform()
 
 def update_cookies(driver,username):
     cookies = driver.get_cookies()
@@ -142,4 +204,3 @@ def update_cookies(driver,username):
         'UPDATE cookies SET token = "%s", session = "%s", update_time = "%s" WHERE username = "%s"' % (
             cookie_data[0]['value'], cookie_data[2]['value'],time.strftime("%Y-%m-%d %H:%M:%S"), username)
     )
-
