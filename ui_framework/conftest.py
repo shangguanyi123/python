@@ -198,9 +198,11 @@ class WebAutomation:
 
 def update_cookies(driver,username):
     cookies = driver.get_cookies()
-    cookie_json = json.dumps(cookies, indent=2)  # 转为json
+    cookie_json = json.dumps(cookies)  # 转为json
     cookie_data = json.loads(cookie_json)  # 转为python字典
     db.execute_update(
-        'UPDATE cookies SET token = "%s", session = "%s", update_time = "%s" WHERE username = "%s"' % (
-            cookie_data[0]['value'], cookie_data[2]['value'],time.strftime("%Y-%m-%d %H:%M:%S"), username)
+        'UPDATE cookies SET token = "%s", session = "%s",Cookie_json="%s",update_time = "%s" WHERE username = "%s"' % (
+            cookie_data[0]['value'], cookie_data[2]['value'],cookie_json,time.strftime("%Y-%m-%d %H:%M:%S"), username)
     )
+    
+    
