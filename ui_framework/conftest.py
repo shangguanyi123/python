@@ -1,4 +1,5 @@
 # encoding=utf-8
+# encoding=utf-8
 import pyautogui
 import pytest, time, logging, os, threading ,json
 from selenium import webdriver
@@ -16,12 +17,14 @@ def driver(request):
         username = identity_marker.args[0]
         cookie_data = db.execute_query(f"SELECT session, token FROM cookies WHERE username = '{username}'")
     else:
-        # 如果没有标记，默认使用 'user1' 身份
-        cookie_data = db.execute_query("select session,token from cookies where username = 'user1'")
+        # 如果没有标记，默认使用 '非试剂' 身份
+        cookie_data = db.execute_query("select session,token from cookies where username = '非试剂'")
 
     options = webdriver.ChromeOptions()  # 定义一个 ChromeOptions 对象，可以用来设置启动 Chrome 浏览器的一些参数。
     #options.add_argument('--headless')  # 开启无界面模式（无窗口运行）
-    #options.add_argument('blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
+    #options.add_argument('--blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
+
+
     # 去掉不安全提示short
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_experimental_option('useAutomationExtension', False)
@@ -31,8 +34,8 @@ def driver(request):
     driver.get(f"{url}")
     driver.implicitly_wait(8)
     cookies = [
-        {'domain': 'spider.aikonchem.com', 'name': 'qs_session', 'path': '/', 'value': cookie_data[0]['session']},
-        {'domain': 'spider.aikonchem.com', 'name': 'XSRF-TOKEN', 'path': '/', 'value': cookie_data[0]['token']}
+        { 'name': 'qs_session', 'path': '/', 'value': cookie_data[0]['session']},
+        { 'name': 'XSRF-TOKEN', 'path': '/', 'value': cookie_data[0]['token']}
     ]
     for i in cookies:
         driver.add_cookie(i)
@@ -122,11 +125,21 @@ class Select:
             except (NoSuchElementException, IndexError):
                 return False
 
+    # 获取文本内容
+    def text_content(self, types, element, index=None):
+        if index is None:
+            info = self.driver.find_element(types, element).text
+            return info
+        else:
+            info = self.driver.find_elements(types, element)[index].text
+            return info
+
 def update_cookies(driver,username):
     cookies = driver.get_cookies()
     cookie_json = json.dumps(cookies, indent=2)  # 转为json
     cookie_data = json.loads(cookie_json)  # 转为python字典
     db.execute_update(
-        'UPDATE cookies SET token = "%s", session = "%s" WHERE username = "%s"' % (
-            cookie_data[0]['value'], cookie_data[2]['value'], username)
+        'UPDATE cookies SET token = "%s", session = "%s", update_time = "%s" WHERE username = "%s"' % (
+            cookie_data[0]['value'], cookie_data[2]['value'],time.strftime("%Y-%m-%d %H:%M:%S"), username)
     )
+
