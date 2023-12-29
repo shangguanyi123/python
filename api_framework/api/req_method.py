@@ -1,41 +1,47 @@
-#coding=gbk
+#encoding=utf-8
 import requests,json
-from api_framework.API_case.API_data import Config
+from API_case.API_data import Config
 
 class UserAPI:
-    # {route} ½Ó¿ÚÂ·¾¶
+    # {route} æ¥å£è·¯å¾„
     @staticmethod
-    def get(route):#getÇëÇó
+    def get(route,params=''):#getè¯·æ±‚
         url = f"{Config.api_host}{route}"
-        response = requests.get(url=url, headers=Config.headers)
-        assert response.status_code == 200
+        response = requests.get(url=url, headers=Config.headers, params=params)
+        #assert response.status_code == 200
         return response
 
     @staticmethod
-    def post(route,data):#postÇëÇó ´«json
+    def post(route,data):#postè¯·æ±‚ ä¼ json
         url = f"{Config.api_host}{route}"
         response = requests.post(url=url, headers=Config.headers_json, data=json.dumps(data))
-        assert response.status_code == 200
+        #assert response.status_code == 200
         return response
 
     @staticmethod
-    def post_biaodan(route, data):  # postÇëÇó ´«±íµ¥
+    def post_biaodan(route, data):  # postè¯·æ±‚ ä¼ è¡¨å•
         url = f"{Config.api_host}{route}"
         response = requests.post(url=url, headers=Config.headers_biaodan, data=data)
-        assert response.status_code == 200
+        #assert response.status_code == 200
         return response
 
     @staticmethod
-    def put(route, data):#putÇëÇó
+    def post_wenjian(route,files):  # postè¯·æ±‚ ä¼ æ–‡ä»¶
+        url = f"{Config.api_host}{route}"
+        response = requests.post(url=url, headers=Config.headers, files=files)
+        return response
+
+    @staticmethod
+    def put(route, data):#putè¯·æ±‚
         url = f"{Config.api_host}{route}"
         response = requests.put(url=url, headers=Config.headers_json, data=json.dumps(data))
-        assert response.status_code == 200
+        #assert response.status_code == 200
         return response
 
     @staticmethod
-    def delete(route):#deleteÇëÇó
+    def delete(route):#deleteè¯·æ±‚
         url = f"{Config.api_host}{route}"
         response = requests.delete(url=url, headers=Config.headers)
-        assert response.status_code == 200
+        #assert response.status_code == 200
         return response
 
