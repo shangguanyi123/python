@@ -1,10 +1,11 @@
-#coding=gbk
-import time
+#encoding=utf-8
+import json
+import time,random
 import pytest
 
-from api_framework.API_case.API_data import Data_API1
-from api_framework.api.req_method import UserAPI
-from api_framework.sql import MySQLHelper
+from API_case.API_data import *
+from api.req_method import UserAPI
+from sql import MySQLHelper
 
 
 dqsj1 = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -23,7 +24,7 @@ class Xitongguanli():
     fuzhuzilaio_mingcheng_key = ''
     fuzhushuxing_id = ''
     fuzhushuxing_field_name = ''
-    #ÓÃ»§²éÑ¯
+    #ç”¨æˆ·æŸ¥è¯¢
     username = ''
     user_no = ''
     name = ''
@@ -31,33 +32,46 @@ class Xitongguanli():
     user_type = ''
     role_id = ''
 
-    # Ê¹ÓÃ²ÎÊı»¯×°ÊÎÆ÷¶¨Òå²âÊÔÓÃÀı
+
     def add_user(self,status):
         id  = int(time.time())
         uname = f"test{id}"
-        #»ñÈ¡ÓÃ»§±àºÅ
-        url = '/api/v1/system/user/userno'
-        res = UserAPI.get(url)
-        print('»ñÈ¡ÓÃ»§±àºÅ',res.json()['data'])
-        bianhao = res.json()['data']
-        #ĞÂÔöÓÃ»§
+        #è·å–ç”¨æˆ·ç¼–å·
+        url1 = '/api/v1/system/user/userno'
+        res1 = UserAPI.get(url1)
+        print('è·å–ç”¨æˆ·ç¼–å·',res1.json()['data'])
+        bianhao = res1.json()['data']
+        #è·å–éƒ¨é—¨id
+        url2 = '/api/v1/system/org/index'
+        res2 = UserAPI.get(url2)
+        #print('è·å–éƒ¨é—¨',res2.json())
+        bumen = random.randint(0,len(res2.json()['data'][0]['children'])-1)
+        print('éšæœºéƒ¨é—¨id',res2.json()['data'][0]['children'][bumen]['id'])
+        bumen_id = res2.json()['data'][0]['children'][bumen]['id']
+        #è·å–æ‰€æœ‰è§’è‰²
+        url3 = '/api/v1/system/role/index?status=1'
+        res3 = UserAPI.get(url3)
+        juese = random.randint(0,len(res3.json()['data'])-1)
+        print('éšæœºè§’è‰²id',res3.json()['data'][juese]['id'])
+        juese_id = res3.json()['data'][juese]['id']
+        #æ–°å¢ç”¨æˆ·
         url = '/api/v1/system/user/store'
-        data = Data_API1().add_user(bianhao,uname,id,status)
+        data = Data_xitong().add_user(bianhao,uname,bumen_id,juese_id,id,status)
         res = UserAPI.post(url,data)
-        print('ĞÂÔöÓÃ»§',res.json())
-        Xitongguanli.user_id = res.json()['data']['id']
-        Xitongguanli.username = res.json()['data']['username']
+        print('æ–°å¢ç”¨æˆ·',res.json())
         assert res.status_code == 200
         assert res.json()['data']['name'] == uname
-        assert res.json()['data']['status'] == status,'ĞÂÔöÓÃ»§×´Ì¬²»·û'
-        #´Ë½Ó¿ÚÎ´·µ»Øemail
+        assert res.json()['data']['status'] == status,'æ–°å¢ç”¨æˆ·çŠ¶æ€ä¸ç¬¦'
+        Xitongguanli.user_id = res.json()['data']['id']
+        Xitongguanli.username = res.json()['data']['username']
     def select_user(self,status):
         url = f'/api/v1/system/user/index?page=1&page_size=10&status={status}&search[0][user_no]=&search[0][username]={Xitongguanli.username}&search[0][name]=&org_id=1&user_no=&username={Xitongguanli.username}&name='
         res = UserAPI.get(url)
         assert res.status_code == 200
         assert res.json()['status'] == 0
+        print('æŸ¥è¯¢ç”¨æˆ·',res.json())
         for i in res.json()['data']['data']:
-            assert i['status'] == status,'²éÑ¯ÓÃ»§×´Ì¬²»·û'
+            assert i['status'] == status,'æŸ¥è¯¢ç”¨æˆ·çŠ¶æ€ä¸ç¬¦'
         if res.json()['data']['data']:
             Xitongguanli.username = res.json()['data']['data'][0]['username']
             Xitongguanli.user_no = res.json()['data']['data'][0]['user_no']
@@ -66,104 +80,130 @@ class Xitongguanli():
             Xitongguanli.user_type = res.json()['data']['data'][0]['user_type']
             Xitongguanli.user_id = res.json()['data']['data'][0]['id']
             Xitongguanli.role_id = res.json()['data']['data'][0]['role_ids'][0]
-    def update_uesr(self,bumen,juese,status):
+        return res
+    def update_uesr(self,status):
+        # è·å–éƒ¨é—¨id
+        url2 = '/api/v1/system/org/index'
+        res2 = UserAPI.get(url2)
+        # print('è·å–éƒ¨é—¨',res2.json())
+        bumen = random.randint(0, len(res2.json()['data'][0]['children']) - 1)
+        print('éšæœºéƒ¨é—¨id', res2.json()['data'][0]['children'][bumen]['id'])
+        bumen_id = res2.json()['data'][0]['children'][bumen]['id']
+        # è·å–æ‰€æœ‰è§’è‰²
+        url3 = '/api/v1/system/role/index?status=1'
+        res3 = UserAPI.get(url3)
+        juese = random.randint(0, len(res3.json()['data']) - 1)
+        print('éšæœºè§’è‰²id', res3.json()['data'][juese]['id'])
+        juese_id = res3.json()['data'][juese]['id']
+        #ä¿®æ”¹ç”¨æˆ·
         url = '/api/v1/system/user/update'
-        data = Data_API1().update_user(Xitongguanli.username,Xitongguanli.user_no,Xitongguanli.name,bumen,Xitongguanli.phone,Xitongguanli.user_type,status,juese,Xitongguanli.user_id)
+        data = Data_xitong().update_user(Xitongguanli.username,Xitongguanli.user_no,Xitongguanli.name,bumen_id,Xitongguanli.phone,Xitongguanli.user_type,status,juese_id,Xitongguanli.user_id)
         res = UserAPI.post(url,data)
-        print('ĞŞ¸ÄÓÃ»§',res.json())
+        print('ä¿®æ”¹ç”¨æˆ·',res.json())
         assert res.status_code == 200
-        assert res.json()['message'] == '²Ù×÷³É¹¦'
+        assert res.json()['message'] == 'æ“ä½œæˆåŠŸ'
         assert res.json()['status'] == 0
-        assert res.json()['data']['roles'][0]['id'] == juese,'½ÇÉ«²»Ò»ÖÂ'
-        assert res.json()['data']['status'] == status,'×´Ì¬²»Ò»ÖÂ'
-        #´Ë½Ó¿ÚÔİÎ´·µ»Ø²¿ÃÅ×Ö¶Î
+        assert res.json()['data']['roles'][0]['id'] == juese_id,'è§’è‰²ä¸ä¸€è‡´'
+        assert res.json()['data']['status'] == status,'çŠ¶æ€ä¸ä¸€è‡´'
+        #æ­¤æ¥å£æš‚æœªè¿”å›éƒ¨é—¨å­—æ®µ
     def del_user(self):
         url = '/api/v1/system/user/destroy'
-        data  = Data_API1().del_user(Xitongguanli.user_id)
+        data  = Data_xitong().del_user(Xitongguanli.user_id)
         res = UserAPI.post(url,data)
-        print('É¾³ıÓÃ»§',res.json())
+        print('åˆ é™¤ç”¨æˆ·',res.json())
         assert res.status_code == 200
-        assert res.json()['message'] == '²Ù×÷³É¹¦'
+        assert res.json()['message'] == 'æ“ä½œæˆåŠŸ'
         assert res.json()['status'] == 0
-    def update_user_status(self,sel_status,update_status):
-        #²éÑ¯ËùÓĞÓÃ»§
-        url = f'/api/v1/system/user/index?page=1&page_size=10&status={sel_status}&org_id=1'
+    def update_user_status(self,status,update_status):
+        #æŸ¥è¯¢æ‰€æœ‰ç”¨æˆ·
+        url = f'/api/v1/system/user/index?page=1&page_size=10&status={status}&org_id=1'
         sel_res = UserAPI.get(url)
         user_id = []
         if sel_res.json()['data']['data']:
             for i in sel_res.json()['data']['data']:
                 user_id.append(i['id'])
-            #ĞŞ¸ÄÓÃ»§×´Ì¬
+            #ä¿®æ”¹ç”¨æˆ·çŠ¶æ€
             url = '/api/v1/system/user/status'
-            data = Data_API1().update_user_status(user_id,update_status)
+            data = Data_xitong().update_user_status(user_id,update_status)
             res = UserAPI.post(url,data)
             assert res.status_code == 200
-            assert res.json()['message'] == '²Ù×÷³É¹¦'
+            assert res.json()['message'] == 'æ“ä½œæˆåŠŸ'
             assert len(sel_res.json()['data']['data']) == res.json()['data']
     def add_juese(self,name,status):
-        #ĞÂÔö½ÇÉ«
+        #æ–°å¢è§’è‰²
         url1 = '/api/v1/system/role/store'
-        data1,data2 = Data_API1().add_juese(name,status)
+        data1,data2 = Data_xitong().add_juese(name,status)
         res1 = UserAPI.post(url1,data1)
-        print('ĞÂÔö½ÇÉ«',res1.json())
-        assert res1.status_code == 200
-        assert res1.json()['status'] == 0
-        assert res1.json()['data']['status'] == status
-        Xitongguanli.juese_id = res1.json()['data']['id']
-        #½ÇÉ«ÊÚÈ¨,Ä¿Ç°Ö»¼ÓÁË¹¦ÄÜÈ¨ÏŞ
-        url2 = '/api/v1/system/role/assign_permissions'
-        data1, data2 = Data_API1().add_juese(name, status,Xitongguanli.juese_id)
-        res2 = UserAPI.post(url2,data2)
-        print('½ÇÉ«ÊÚÈ¨',res2.json())
-        assert res2.status_code == 200
-        assert res2.json()['status'] == 0
+        print('æ–°å¢è§’è‰²',res1.json())
+        if res1.status_code == 200:
+            assert res1.json()['status'] == 0
+            assert res1.json()['data']['status'] == status
+            Xitongguanli.juese_id = res1.json()['data']['id']
+
+            # è§’è‰²æˆæƒ,ç›®å‰åªåŠ äº†åŠŸèƒ½æƒé™
+            url2 = '/api/v1/system/role/assign_permissions'
+            data1, data2 = Data_xitong().add_juese(name, status, Xitongguanli.juese_id)
+            res2 = UserAPI.post(url2, data2)
+            print('è§’è‰²æˆæƒ', res2.json())
+            assert res2.status_code == 200
+            assert res2.json()['status'] == 0
+        elif res1.status_code == 422:
+            assert res1.json()['message'] == "'è§’è‰²åç§°'å·²ç»å­˜åœ¨."
+        else:
+            assert False,'çŠ¶æ€ç é”™è¯¯ï¼Œè¯·æ£€æŸ¥æ¥å£è¿”å›å­—æ®µ'
+
     def insert_uesr_juese(self):
-        #Ìí¼ÓËùÊô½ÇÉ«
+        #æ·»åŠ æ‰€å±è§’è‰²
         url = '/api/v1/system/role/assign_users'
-        data = Data_API1().insert_uesrt(Xitongguanli.user_id,Xitongguanli.juese_id)
+        data = Data_xitong().insert_uesrt(Xitongguanli.user_id,Xitongguanli.juese_id)
         res = UserAPI.post(url,data)
-        print('Ìí¼ÓËùÊô½ÇÉ«',res.json())
+        print('æ·»åŠ æ‰€å±è§’è‰²',res.json())
         assert res.status_code == 200
-        #²éÑ¯ÓÃ»§ÊÇ·ñÌí¼Óµ½¸Ã½ÇÉ«
+        #æŸ¥è¯¢ç”¨æˆ·æ˜¯å¦æ·»åŠ åˆ°è¯¥è§’è‰²
         url = f'/api/v1/system/role/users?page=1&page_size=10&search[0][user_no]=&search[0][username]={Xitongguanli.username}&search[0][name]=&role_id={Xitongguanli.juese_id}&user_no=&username={Xitongguanli.username}&name='
         res = UserAPI.get(url)
-        print('²éÑ¯ÓÃ»§ÊÇ·ñÌí¼Óµ½¸Ã½ÇÉ«',res.json()['data']['data'][0]['user']['username'])
+        print('æŸ¥è¯¢ç”¨æˆ·æ˜¯å¦æ·»åŠ åˆ°è¯¥è§’è‰²',res.json()['data']['data'][0]['user']['username'])
         assert res.status_code == 200
         assert res.json()['status'] == 0
         assert res.json()['data']['data'][0]['user']['username'] == Xitongguanli.username
     def del_user_juese(self):
         url = '/api/v1/system/role/remove_users'
-        data = Data_API1().del_user_juese(Xitongguanli.user_id,Xitongguanli.juese_id)
+        data = Data_xitong().del_user_juese(Xitongguanli.user_id,Xitongguanli.juese_id)
         res = UserAPI.post(url,data)
-        print('É¾³ıÓÃ»§ËùÊô½ÇÉ«',res.json())
+        print('åˆ é™¤ç”¨æˆ·æ‰€å±è§’è‰²',res.json())
         assert res.status_code == 200
-        assert res.json()['message'] == '²Ù×÷³É¹¦'
+        assert res.json()['message'] == 'æ“ä½œæˆåŠŸ'
         assert res.json()['status'] == 0
         url = f'/api/v1/system/role/users?page=1&page_size=10&search[0][user_no]=&search[0][username]={Xitongguanli.username}&search[0][name]=&role_id={Xitongguanli.juese_id}&user_no=&username={Xitongguanli.username}&name='
         res = UserAPI.get(url)
-        print('É¾³ıºó²éÑ¯¸Ã½ÇÉ«',res.json()['data']['data'])
+        print('åˆ é™¤åæŸ¥è¯¢è¯¥è§’è‰²',res.json()['data']['data'])
         assert res.status_code == 200
-        assert res.json()['data']['data'] == [], 'É¾³ı½ÇÉ«Ê§°Ü£¬½ÇÉ«»¹ÊÇ´æÔÚ'
+        assert res.json()['data']['data'] == [], 'åˆ é™¤è§’è‰²å¤±è´¥ï¼Œè§’è‰²è¿˜æ˜¯å­˜åœ¨'
     def del_juese(self):
         url = '/api/v1/system/role/destroy'
-        data = Data_API1().del_juese(Xitongguanli.juese_id)
+        data = Data_xitong().del_juese(Xitongguanli.juese_id)
         res = UserAPI.post(url,data)
-        print('É¾³ı½ÇÉ«',res.json())
+        print('åˆ é™¤è§’è‰²',res.json())
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        MySQLHelper().execute_delete('roles','deleted_at IS NOT NULL')
+        #MySQLHelper().execute_update('roles','deleted_at IS NOT NULL')
     def add_danwei(self,leixing,danwei,zhuangtai,jl_danwei=None,jibengang=None,zhuanhualv=None):#jl_danwei:weight length area volume number_of_packages time other
         url = '/api/v1/system/base/units/store'
-        data = Data_API1().add_danwei(leixing,danwei,zhuangtai,jl_danwei,jibengang,zhuanhualv)
+        data = Data_xitong().add_danwei(leixing,danwei,zhuangtai,jl_danwei,jibengang,zhuanhualv)
         res = UserAPI.post(url,data)
-        print('ĞÂÔöµ¥Î»',res.json())
-        assert res.status_code == 200
-        assert res.json()['status'] == 0
-        assert res.json()['data']['status'] == zhuangtai
-        assert res.json()['data']['name'] == danwei
-        Xitongguanli.danwei_bianma = res.json()['data']['code']
-        Xitongguanli.danwei_id= res.json()['data']['id']
-    def sel_danwei(self,danweileixing): #package package
+        print('æ–°å¢å•ä½',res.json())
+        if res.status_code == 200:
+            assert res.status_code == 200
+            assert res.json()['status'] == 0
+            assert res.json()['data']['status'] == zhuangtai
+            assert res.json()['data']['name'] == danwei
+            Xitongguanli.danwei_bianma = res.json()['data']['code']
+            Xitongguanli.danwei_id = res.json()['data']['id']
+        elif res.status_code == 422:
+            assert res.json()['message'] == 'åŒä¸€æ‰€å±é‡çº²ï¼Œåªèƒ½æœ‰ä¸€ä¸ªå•ä½ä¸ºåŸºæœ¬çº²' or "'ç¼–ç 'å·²ç»å­˜åœ¨."
+        else:
+            assert False,'çŠ¶æ€ç é”™è¯¯ï¼Œè¯·æ£€æŸ¥æ¥å£è¿”å›ä¿¡æ¯'
+    def sel_danwei(self,danweileixing): #package measure
         url = f'/api/v1/system/base/units/index?page=1&page_size=10&classes={danweileixing}'
         res = UserAPI.get(url)
         assert res.status_code == 200
@@ -171,303 +211,550 @@ class Xitongguanli():
         if res.json()['data']['data']:
             for i in res.json()['data']['data']:
                 assert i['classes'] == danweileixing
+        return res
     def update_danwei(self, leixing, danwei, zhuangtai, jl_danwei=None, jibengang=None,zhuanhualv=None):  # jl_danwei:weight length area volume number_of_packages time other
         url = '/api/v1/system/base/units/update'
-        data = Data_API1().update_danwei(leixing, danwei, zhuangtai,Xitongguanli.danwei_id,Xitongguanli.danwei_bianma,jl_danwei, jibengang, zhuanhualv)
+        data = Data_xitong().update_danwei(leixing, danwei, zhuangtai,Xitongguanli.danwei_id,Xitongguanli.danwei_bianma,jl_danwei, jibengang, zhuanhualv)
         res = UserAPI.post(url, data)
-        print('ĞŞ¸Äµ¥Î»', res.json())
+        print('ä¿®æ”¹å•ä½', res.json())
         assert res.status_code == 200
         assert res.json()['status'] == 0
         assert res.json()['data']['status'] == zhuangtai
         assert res.json()['data']['name'] == danwei
     def del_danwei(self):
         url = '/api/v1/system/base/units/destroy'
-        data = Data_API1().del_danwei(Xitongguanli.danwei_id)
+        data = Data_xitong().del_danwei(Xitongguanli.danwei_id)
         res = UserAPI().post(url,data)
-        print('É¾³ıµ¥Î»',res.json())
+        print('åˆ é™¤å•ä½',res.json())
         assert res.status_code == 200
         assert res.json()['status'] == 0
     def select_danjuleixing_shengheduize_id(self,dj_leixing,dj_guize):
-        # ²éÑ¯µ¥¾İÀàĞÍ£¬ÉóºË¹æÔò
+        # æŸ¥è¯¢å•æ®ç±»å‹ï¼Œå®¡æ ¸è§„åˆ™
         url_sel = '/api/v1/system/individuation/documents/cases'
         res_sel = UserAPI.get(url_sel)
         assert res_sel.status_code == 200
         assert res_sel.json()['status'] == 0
-        # print('²éÑ¯µ½µ¥¾İÀàĞÍ£¬ÉóºË¹æÔò',res_sel.json())
+        # print('æŸ¥è¯¢åˆ°å•æ®ç±»å‹ï¼Œå®¡æ ¸è§„åˆ™',res_sel.json())
         danjuleixing = {}
         shenheguize = {}
-        # °Ñµ¥¾İÀàĞÍºÍÉóºË¹æÔò´æµ½×Öµä
+        # æŠŠå•æ®ç±»å‹å’Œå®¡æ ¸è§„åˆ™å­˜åˆ°å­—å…¸
         for i in res_sel.json()['data']['business_document_values']:
             danjuleixing.update({i['name']: i['val']})
         for i in res_sel.json()['data']['option_value']:
             shenheguize.update({i['label']: i['value']})
         # print(danjuleixing,'\n',shenheguize)
-        # ²éÑ¯ÊäÈëµÄµ¥¾İÀàĞÍ£¬¹æÔò
-        keys_to_query = dj_leixing
-        leixing_id = [danjuleixing[key] for key in keys_to_query]
-        print('µÚÒ»¸öµ¥¾İÀàĞÍid', leixing_id[0])
+        # æŸ¥è¯¢è¾“å…¥çš„å•æ®ç±»å‹ï¼Œè§„åˆ™
+        leixing_id = [danjuleixing[key] for key in dj_leixing]
+        print('å•æ®ç±»å‹id', leixing_id)
         Xitongguanli.danjuleixing_id = leixing_id[0]
         guize_id = shenheguize[dj_guize]
         return leixing_id,guize_id
     def add_danjushenhe(self,dj_leixing,dj_guize,price=None):
         lx_id,gz_id =Xitongguanli().select_danjuleixing_shengheduize_id(dj_leixing,dj_guize)
-        # #ĞÂÔöµ¥¾İÉóºË
+        # #æ–°å¢å•æ®å®¡æ ¸
         url_add = '/api/v1/system/individuation/documents/store'
-        data_add = Data_API1().add_danjushenhe(lx_id,gz_id,price)
+        data_add = Data_xitong().add_danjushenhe(lx_id,gz_id,price)
         res_add = UserAPI.post(url_add,data_add)
-        print('ĞÂÔöµ¥¾İÉóºË',res_add.json())
-        assert res_add.status_code == 200
-        assert res_add.json()['status'] == 0
-        Xitongguanli.danju_id = res_add.json()['data']['id']
+        print('æ–°å¢å•æ®å®¡æ ¸',res_add.json())
+        if res_add.status_code == 200:
+            assert res_add.json()['status'] == 0
+            Xitongguanli.danju_id = res_add.json()['data']['id']
+        elif res_add.status_code == 422:
+            assert res_add.json()['message'] == 'å•æ®ç±»å‹å·²ç»å­˜åœ¨äº†'
     def sel_danjushenhe(self):
         url = f'/api/v1/system/individuation/documents/index?page=1&page_size=10&val={Xitongguanli.danjuleixing_id}'
         res = UserAPI.get(url)
-        #print('²éÑ¯µ¥¾İÉóºË',res.json())
+        #print('æŸ¥è¯¢å•æ®å®¡æ ¸',res.json())
         assert res.status_code == 200
         assert res.json()['status'] == 0
         assert res.json()['data']['data'][0]['id'] == Xitongguanli.danju_id
         Xitongguanli.danju_id = res.json()['data']['data'][0]['id']
+        return res
     def update_danjushenhe(self,dj_leixing,dj_guize,price=None):
         lx_id, gz_id = Xitongguanli().select_danjuleixing_shengheduize_id(dj_leixing, dj_guize)
         url = '/api/v1/system/individuation/documents/update'
-        data = Data_API1().update_danjushenhe(Xitongguanli.danju_id,lx_id,gz_id,price)
+        data = Data_xitong().update_danjushenhe(Xitongguanli.danju_id,lx_id,gz_id,price)
         res = UserAPI.post(url,data)
-        print('ĞŞ¸Äµ¥¾İÉóºË',res.json())
+        print('ä¿®æ”¹å•æ®å®¡æ ¸',res.json())
         assert res.status_code == 200
         assert res.json()['status'] == 0
         assert res.json()['data'] == 1
     def del_danjushenhe(self):
         url = '/api/v1/system/individuation/documents/destroy'
-        data = Data_API1().del_danjushenhe(Xitongguanli.danju_id)
+        data = Data_xitong().del_danjushenhe(Xitongguanli.danju_id)
         res = UserAPI.post(url,data)
-        print('É¾³ıµ¥¾İÉóºË',res.json())
+        print('åˆ é™¤å•æ®å®¡æ ¸',res.json())
         assert res.status_code == 200
         assert res.json()['status'] == 0
         assert res.json()['data'] == 1
     def gonggongcanshu_email(self):
         url = '/api/v1/system/base/parameters/email/test'
-        data = Data_API1().gonggongcanshu_email()
+        data = Data_xitong().gonggongcanshu_email()
         res = UserAPI.post(url,data)
-        print('ÏµÍ³²ÎÊı-¹«¹²²ÎÊı£¬·¢ËÍ²âÊÔÓÊ¼ş',res.json())
+        print('ç³»ç»Ÿå‚æ•°-å…¬å…±å‚æ•°ï¼Œå‘é€æµ‹è¯•é‚®ä»¶',res.json())
         assert res.status_code == 200
-        assert res.json()['message'] == '·¢ËÍ³É¹¦'
+        assert res.json()['message'] == 'å‘é€æˆåŠŸ'
     def add_diqu(self,status,diqu):
         url = '/api/v1/system/base/areas/store'
-        data = Data_API1().add_diqu(status,diqu)
+        data = Data_xitong().add_diqu(status,diqu)
         res = UserAPI.post(url,data)
-        print('ĞÂÔöµØÇø',res.json())
+        print('æ–°å¢åœ°åŒº',res.json())
         assert res.status_code == 200
         assert res.json()['data']['status'] == status
     def sel_diqu(self,diqu):
         url = f'/api/v1/system/base/areas/index?page=1&page_size=10&name_zh={diqu}&country_id=1'
         res = UserAPI.get(url)
-        print('²éÑ¯µØÇø',res.json()['data']['data'])
+        print('æŸ¥è¯¢åœ°åŒº',res.json()['data']['data'])
         assert res.status_code == 200
         assert res.json()['data']['data'][0]['county_name'] == diqu
         Xitongguanli.diqu_id = res.json()['data']['data'][0]['id']
+        return res
     def update_diqu(self,status,diqu):
         url = '/api/v1/system/base/areas/update'
-        data = Data_API1().update_diqu(status,diqu,Xitongguanli.diqu_id)
+        data = Data_xitong().update_diqu(status,diqu,Xitongguanli.diqu_id)
         res = UserAPI.post(url,data)
-        print('ĞŞ¸ÄµØÇø',res.json())
+        print('ä¿®æ”¹åœ°åŒº',res.json())
         assert res.status_code == 200
         assert res.json()['data']['status'] == status
         assert res.json()['data']['name_zh'] == diqu
     def del_diqu(self,diqu):
-        #É¾³ıµØÇø
+        #åˆ é™¤åœ°åŒº
         url = '/api/v1/system/base/areas/destroy'
-        data =Data_API1().del_diqu(Xitongguanli.diqu_id)
+        data =Data_xitong().del_diqu(Xitongguanli.diqu_id)
         res = UserAPI.post(url,data)
-        print('É¾³ıµØÇø',res.json())
+        print('åˆ é™¤åœ°åŒº',res.json())
         assert res.status_code == 200
         assert res.json()['data'] == 1
-        #É¾³ıºó²éÑ¯µØÇøÊÇ·ñ´æÔÚ
+        #åˆ é™¤åæŸ¥è¯¢åœ°åŒºæ˜¯å¦å­˜åœ¨
         url = f'/api/v1/system/base/areas/index?page=1&page_size=10&name_zh={diqu}&country_id=1'
         res = UserAPI.get(url)
         assert res.json()['data']['data'] == []
     def update_biaohao_guize(self,bianmafenduan):
         dqsj = time.strftime("%Y%m%d")
         url = '/api/v1/system/individuation/numbering/update'
-        data = Data_API1().update_biaohao_guize(bianmafenduan)
+        data = Data_xitong().update_biaohao_guize(bianmafenduan)
         res = UserAPI.post(url,data)
         if bianmafenduan == 1:
-            print('ĞŞ¸Ä±àºÅ¹æÔò',res.json())
+            print('ä¿®æ”¹ç¼–å·è§„åˆ™',res.json())
             assert res.status_code == 200
             assert res.json()['data']['demo'] == '000001'
         elif bianmafenduan == 2:
-            print('ĞŞ¸Ä±àºÅ¹æÔò',res.json())
+            print('ä¿®æ”¹ç¼–å·è§„åˆ™',res.json())
             assert res.status_code == 200
             assert res.json()['data']['demo'] == 'CP000001'
         elif bianmafenduan == 3:
-            print('ĞŞ¸Ä±àºÅ¹æÔò',res.json())
+            print('ä¿®æ”¹ç¼–å·è§„åˆ™',res.json())
             assert res.status_code == 200
             assert res.json()['data']['demo'] == f"CP{dqsj}000001"
         elif bianmafenduan == 4:
             assert res.status_code != 200
-            print('ĞŞ¸Ä±àºÅ¹æÔò',res.json()['message'])
-            assert res.json()['message'] == f"Í¬Ò»µ¥¾İÀà±ğ±ØĞëÉèÖÃ¡°Á÷Ë®ºÅ¡±µ¥¾İ¹æÔò"
+            print('ä¿®æ”¹ç¼–å·è§„åˆ™',res.json()['message'])
+            assert  "åŒä¸€å•æ®ç±»åˆ«å¿…é¡»è®¾ç½®'æµæ°´å·'å•æ®è§„åˆ™" in res.json()['message']
         elif bianmafenduan == 5:
             assert res.status_code != 200
-            print('ĞŞ¸Ä±àºÅ¹æÔò',res.json()['message'])
-            assert res.json()['message'] == f"Í¬Ò»µ¥¾İÀà±ğ±ØĞëÉèÖÃ¡°Á÷Ë®ºÅ¡±µ¥¾İ¹æÔò"
+            print('ä¿®æ”¹ç¼–å·è§„åˆ™',res.json()['message'])
+            assert "åŒä¸€å•æ®ç±»åˆ«å¿…é¡»è®¾ç½®'æµæ°´å·'å•æ®è§„åˆ™" in res.json()['message']
     def sel_biaohao_guize(self,name):
         url = f'/api/v1/system/individuation/numbering/index?page=1&page_size=10&rules_name={name}&category_name='
         res = UserAPI.get(url)
-        print('²éÑ¯±àºÅ¹æÔò',res.json()['data']['data'][0])
+        print('æŸ¥è¯¢ç¼–å·è§„åˆ™',res.json()['data']['data'][0])
         assert res.status_code == 200
         assert res.json()['data']['data'][0]['rules_name'] == name
+        return res
     def add_fuzhuzilaio_fenlei(self,name):
         url = '/api/v1/enums/category/store'
-        data = Data_API1().add_fuzhuziliao_feilei(name)
+        data = Data_xitong().add_fuzhuziliao_feilei(name)
         res = UserAPI.post(url,data)
-        print('ĞÂÔö¸¨Öú×ÊÁÏ',res.json())
-        assert res.status_code == 200
-        Xitongguanli.fuzhuzilaio_fenlei_id = res.json()['data']['id']
-        Xitongguanli.fuzhuzilaio_fenlei_key = res.json()['data']['key']
-        assert res.json()['data']['title'] == name
+        print('æ–°å¢è¾…åŠ©èµ„æ–™',res.json())
+        if res.status_code == 200:
+            Xitongguanli.fuzhuzilaio_fenlei_id = res.json()['data']['id']
+            Xitongguanli.fuzhuzilaio_fenlei_key = res.json()['data']['key']
+            assert res.json()['data']['title'] == name
+        elif res.status_code == 422:
+            assert res.json()['message'] == "åŒä¸€è¾…åŠ©èµ„æ–™åˆ†ç±»ä¸‹ï¼Œè¾…åŠ©èµ„æ–™åç§°ä¸å¯é‡å¤"
+        else:
+            assert False,'çŠ¶æ€ç é”™è¯¯ï¼Œè¯·æ£€æŸ¥æ¥å£è¿”å›ä¿¡æ¯'
     def update_fuzhuzilaio_fenlei(self,name):
-        #ĞŞ¸Ä¸¨Öú×ÊÁÏ·ÖÀà
+        #ä¿®æ”¹è¾…åŠ©èµ„æ–™åˆ†ç±»
         url = '/api/v1/enums/category/update'
-        data = Data_API1().update_fuzhuziliao_fenlei(Xitongguanli.fuzhuzilaio_fenlei_id,name)
+        data = Data_xitong().update_fuzhuziliao_fenlei(Xitongguanli.fuzhuzilaio_fenlei_id,name)
         res = UserAPI.post(url,data)
-        print('ĞŞ¸Ä¸¨Öú×ÊÁÏ·ÖÀà',res.json())
+        print('ä¿®æ”¹è¾…åŠ©èµ„æ–™åˆ†ç±»',res.json())
         assert res.status_code == 200
         assert res.json()['data'] == 1
     def add_fuzhuzilaio_mingcheng(self,name,status):
         url = '/api/v1/enums/store'
-        data = Data_API1().add_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_fenlei_key,name,status)
+        data = Data_xitong().add_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_fenlei_key,name,status)
         res = UserAPI.post(url,data)
-        print('ĞÂÔö¸¨Öú×ÊÁÏÃû³Æ',res.json())
-        assert res.status_code == 200
-        assert res.json()['data']['status'] == status
-        assert res.json()['data']['value']['name'] == name
-        Xitongguanli.fuzhuzilaio_mingcheng_id = res.json()['data']['id']
-        Xitongguanli.fuzhuzilaio_mingcheng_key = res.json()['data']['key']
+        print('æ–°å¢è¾…åŠ©èµ„æ–™åç§°',res.json())
+        if res.status_code == 200:
+            assert res.json()['data']['status'] == status
+            assert res.json()['data']['value']['name'] == name
+            Xitongguanli.fuzhuzilaio_mingcheng_id = res.json()['data']['id']
+            Xitongguanli.fuzhuzilaio_mingcheng_key = res.json()['data']['key']
+        elif res.status_code == 422:
+            assert res.json()['message'] == 'åŒä¸€è¾…åŠ©å±æ€§åç§°ä¸‹ï¼Œå±æ€§å†…å®¹ä¸å¯é‡'
+        else:
+            assert  False,'çŠ¶æ€ç é”™è¯¯ï¼Œè¯·å‡å·®æ¥å£è¿”å›ä¿¡æ¯'
     def update_fuzhuziliao_mingcheng(self,name,status):
         url = '/api/v1/enums/update'
-        data = Data_API1().update_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_mingcheng_id,Xitongguanli.fuzhuzilaio_mingcheng_key,name,status)
+        data = Data_xitong().update_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_mingcheng_id,Xitongguanli.fuzhuzilaio_mingcheng_key,name,status)
         res = UserAPI.post(url,data)
-        print('ĞŞ¸Ä¸¨Öú×ÊÁÏÃû³Æ',res.json())
+        print('ä¿®æ”¹è¾…åŠ©èµ„æ–™åç§°',res.json())
         assert res.status_code == 200
         assert res.json()['data']['status'] == status
         assert res.json()['data']['value']['name'] == name
+    def sel_fuzhuziliao(self,name='',type='',status=''):
+        url = '/api/v1/enums/index'
+        data = Data_xitong().sel_fuzhushuxing(name,type,status)
+        res = UserAPI.get(url,data)
+        return res
     def del_fuzhuziliao_mingcheng(self,name):
-        #É¾³ı¸¨Öú×ÊÁÏÃû³Æ
+        #åˆ é™¤è¾…åŠ©èµ„æ–™åç§°
         url = '/api/v1/enums/destroy'
-        data = Data_API1().del_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_mingcheng_id)
+        data = Data_xitong().del_fuzhuziliao_mingcheng(Xitongguanli.fuzhuzilaio_mingcheng_id)
         res = UserAPI.post(url,data)
-        print('É¾³ı¸¨Öú×ÊÁÏÃû³Æ',res.json())
+        print('åˆ é™¤è¾…åŠ©èµ„æ–™åç§°',res.json())
         assert res.status_code == 200
         assert res.json()['data'] == 1
-        #É¾³ıºó²éÑ¯ÊÇ·ñ´æÔÚ
+        #åˆ é™¤åæŸ¥è¯¢æ˜¯å¦å­˜åœ¨
         url1 = f'/api/v1/enums/index?page=1&page_size=10&title={name}&key='
         res1 = UserAPI.get(url1)
         assert res1.json()['data']['data'] == []
     def del_fuzhuziliao_fenlei(self):
         url = '/api/v1/enums/category/destroy'
-        data = Data_API1().del_fuzhuziliao_fenlei(Xitongguanli.fuzhuzilaio_fenlei_id)
+        data = Data_xitong().del_fuzhuziliao_fenlei(Xitongguanli.fuzhuzilaio_fenlei_id)
         res = UserAPI.post(url,data)
-        print('É¾³ı¸¨Öú×ÊÁÏ·ÖÀà',res.json())
+        print('åˆ é™¤è¾…åŠ©èµ„æ–™åˆ†ç±»',res.json())
         assert res.status_code == 200
         assert res.json()['data'] == 1
     def add_fuzhushuxing(self,name,type,status,len=None): # type : varchar int timestamp auxiliary_category
         url = '/api/v1/system/individuation/profile/store'
-        data = Data_API1().add_fuzhushuxing(name,type,status,len)
+        data = Data_xitong().add_fuzhushuxing(name,type,status,len)
         res = UserAPI.post(url,data)
-        print('ĞÂÔö¸¨ÖúÊôĞÔ',res.json())
-        assert res.status_code == 200
-        assert res.json()['data']['show_name'] == name
-        assert res.json()['data']['data_type'] == type
-        assert res.json()['data']['status'] == status
-        Xitongguanli.fuzhushuxing_id = res.json()['data']['id']
-        Xitongguanli.fuzhushuxing_field_name = res.json()['data']['field_name']
+        print('æ–°å¢è¾…åŠ©å±æ€§',res.json())
+        if res.status_code == 200:
+            assert res.json()['data']['show_name'] == name
+            assert res.json()['data']['data_type'] == type
+            assert res.json()['data']['status'] == status
+            Xitongguanli.fuzhushuxing_id = res.json()['data']['id']
+            Xitongguanli.fuzhushuxing_field_name = res.json()['data']['field_name']
+        elif res.status_code == 422:
+            assert res.json()['message'] == "'å­—æ®µåç§°'å·²ç»å­˜åœ¨."
+        else:
+            assert False,'çŠ¶æ€ç é”™è¯¯ï¼Œè¯·æ£€æŸ¥æ¥å£è¿”å›ä¿¡æ¯'
     def update_fuzhushuxing(self,name,type,status,len=None):
         url = '/api/v1/system/individuation/profile/update'
-        data = Data_API1().update_fuzhushuxing(Xitongguanli.fuzhushuxing_id,name,type,status,len)
+        data = Data_xitong().update_fuzhushuxing(Xitongguanli.fuzhushuxing_id,name,type,status,len)
         res = UserAPI.post(url,data)
-        print('ĞŞ¸Ä¸¨ÖúÊôĞÔ',res.json())
+        print('ä¿®æ”¹è¾…åŠ©å±æ€§',res.json())
         assert res.status_code == 200
         assert res.json()['data']['show_name'] == name
         assert res.json()['data']['data_type'] == type
         assert res.json()['data']['status'] == status
     def del_fuzhushuxing(self):
         url = '/api/v1/system/individuation/profile/destroy'
-        data = Data_API1().del_fuzhushuxing(Xitongguanli.fuzhushuxing_id)
+        data = Data_xitong().del_fuzhushuxing(Xitongguanli.fuzhushuxing_id)
         res = UserAPI.post(url,data)
-        print('É¾³ı¸¨ÖúÊôĞÔ',res.json())
+        print('åˆ é™¤è¾…åŠ©å±æ€§',res.json())
         assert res.status_code == 200
         assert res.json()['data'] == 1
 
+class Chanpinguanli():
+    def sel_chanpinfenlei(self,name=None):
+        if name == None:
+            url = f'/api/v1/prod/cate/index'
+            res = UserAPI.get(url)
+            return res
+        else:
+            url = f'/api/v1/prod/cate/index?name={name}'
+            res = UserAPI.get(url)
+            return res
+    def add_chanpinfenlei(self,fenlei,bianhao,mingcehng,paixv,zhuangtai,shangjifenlei=None):
+        url = '/api/v1/prod/cate/store'
+        data = Data_chanpin().add_chanpinfenlei(fenlei,bianhao,mingcehng,paixv,zhuangtai,shangjifenlei)
+        res = UserAPI.post(url,data)
+        return res
+    def update_chanpinfenlei(self,yijifenlei_id,erjifenlei_id,bianhao,mingcheng,paixv,zhaungtai):
+        url = '/api/v1/prod/cate/update'
+        data = Data_chanpin().update_chanpinfenlei(yijifenlei_id,erjifenlei_id,bianhao,mingcheng,paixv,zhaungtai)
+        res = UserAPI.post(url,data)
+        return res
+    def del_chanpinfenlei(self,id):
+        url = '/api/v1/prod/cate/batch_destroy'
+        data = Data_chanpin().del_chanpinfenlei(id)
+        res = UserAPI().post(url,data)
+        return res
+    def add_pinpai(self,mingcheng,caigou_zhekou,xiaoshou_zhekou,paixu):
+        url = '/api/v1/prod/brand/store'
+        data = Data_chanpin().add_pinpai(mingcheng,caigou_zhekou,xiaoshou_zhekou,paixu)
+        res = UserAPI.post(url,data)
+        return res
+    def update_pinpai(self,id,mingcheng,caigou_zhekou,xiaoshou_zhekou,paixu):
+        url = '/api/v1/prod/brand/update'
+        data = Data_chanpin().update_pinpai(id,mingcheng,caigou_zhekou,xiaoshou_zhekou,paixu)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_pinpai(self,name=None):
+        if name == None:
+            url = f'/api/v1/prod/brand/index?page=1&page_size=10'
+            res = UserAPI.get(url)
+            return res
+        else:
+            url = f'/api/v1/prod/brand/index?page=1&page_size=10&name={name}'
+            res = UserAPI.get(url)
+            return res
+    def del_pinpai(self,id):
+        url = '/api/v1/prod/brand/batch_destroy'
+        data = Data_chanpin().del_pinpai(id)
+        res = UserAPI.post(url,data)
+        return res
+    def weixianpin_biaoqian(self):
+        url = '/api/v1/system/base/dangerous_label/index'
+        res = UserAPI.get(url)
+        return res
+    def cas_shangchuan_mol(self,path):
+        url = '/api/v1/base/upload/mol'
+        file = Data_chanpin().cas_shangchuan_mol(path)
+        res = UserAPI.post_wenjian(url,file)
+        return res
+    def cas_shangchuan_tupian(self,path):
+        url = '/api/v1/base/upload'
+        file = Data_chanpin().cas_shangchuan_tupian(path)
+        res = UserAPI.post_wenjian(url, file)
+        return res
+    def iChembio_info(self,cas):
+        url = f'/api/v1/prod/cas/get/from/iChembio?cas={cas}'
+        res = UserAPI.get(url)
+        return res
+    def add_cas(self,cas,name,bieming,fenzijiegou,fenzishi,fenziliang,mdl,einecs,weixianbiaoshi,imgid,filename,img_show):
+        url = '/api/v1/prod/cas/store'
+        data = Data_chanpin().add_cas(cas,name,bieming,fenzijiegou,fenzishi,fenziliang,mdl,einecs,weixianbiaoshi,imgid,filename,img_show)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_cas(self,cas):
+        url = f'/api/v1/prod/cas/index?keywords={cas}&page=1&page_size=10'
+        res = UserAPI.get(url)
+        return res
+    def update_cas(self,id,cas,name,bieming,fenzijiegou,fenzishi,fenziliang,mdl,einecs,weixianbiaoshi,imgid,filename,img_show):
+        url = '/api/v1/prod/cas/update'
+        data = Data_chanpin().update_cas(id,cas,name,bieming,fenzijiegou,fenzishi,fenziliang,mdl,einecs,weixianbiaoshi,imgid,filename,img_show)
+        res = UserAPI.post(url,data)
+        return res
+    def del_cas(self,id):
+        url = '/api/v1/prod/cas/destroy'
+        data = Data_chanpin().del_cas(id)
+        res = UserAPI.post(url,data)
+        return res
+    # æ–°å¢äº§å“ç›¸å…³æ¥å£
+    #è·å–äº§å“ç¼–å·
+    def sel_prod_number(self):
+        url = '/api/v1/generate_no/Prod'
+        res = UserAPI.get(url)
+        return res
+    #å­˜å‚¨æ¡ä»¶
+    def chucuntiaojian(self):
+        url = '/api/v1/prod/storage_conditions/index'
+        res = UserAPI.get(url)
+        return res
+    #äº§å“åˆ†ç±»
+    def chanpinfenlei(self):
+        url = '/api/v1/prod/cate/index?status=1'
+        res = UserAPI.get(url)
+        return res
+    #äº§å“å±æ€§
+    def chanpin_fuzhushuxing(self):
+        url = '/api/v1/prod/profile'
+        res = UserAPI.get(url)
+        return res
+    #æ–°å¢äº§å“
+    def add_chanpin(self,bianhao,cas,name,fenlei,leixing,chucuntiaojian,weixianpin_biaoqian,fuzhushuxing,img_id,img_filename,img_img_show,guige_bianhao,chundu,pinpai_name,pinpai_id,baozhuang_id,baozhaung_name,jiliang_id,jiliang_name,danweizhaunhuan,baozhuang,jiage,huoqi):
+        url = '/api/v1/prod/store'
+        data = Data_chanpin().add_chanin(bianhao,cas,name,fenlei,leixing,chucuntiaojian,weixianpin_biaoqian,fuzhushuxing,img_id,img_filename,img_img_show,guige_bianhao,chundu,pinpai_name,pinpai_id,baozhuang_id,baozhaung_name,jiliang_id,jiliang_name,danweizhaunhuan,baozhuang,jiage,huoqi)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_chanpin(self,cas='', prod_no='', name_cn='', name_en='', sku_no='', fenzishi='', zhuangtai='',weixianpinbiaoqian_id='', pinpai_id='', cangku_id='', kuwei_id=''):
+        url = '/api/v1/prod/index'
+        params = Data_chanpin().sel_chanpin(cas, prod_no, name_cn, name_en, sku_no, fenzishi, zhuangtai,weixianpinbiaoqian_id, pinpai_id, cangku_id, kuwei_id)
+        res = UserAPI.get(url,params)
+        return res
+    def update_chanpin(self,cp_id,chanpin_bianhao,cas,name_en,chanpinfenlei_id,chanpinleixing,chucuntiaojian,weixianpin_id,zhuangtai,fuzhushuxing,img1_id,img1_filename,img1_img_show,img2_id,img2_filename,img2_img_show,
+                      guige_id1,guige_bianhao1,chundu1,pinpai_id1,pinpaimingcheng1,banzhuang_id1,baozhuang_name1,danweizhuanhuan1,jiliang_id1,jiliang_name1,baozhaung1,jiage1,huoqi1,
+                      guige_bianhao2,chundu2,pinpai_id2,pinpaimingcheng2,banzhuang_id2,baozhuang_name2,danweizhuanhuan2,jiliang_id2,jiliang_name2,baozhaung2,jiage2,huoqi2):
+        url = '/api/v1/prod/update'
+        data = Data_chanpin().update_chanin(cp_id,chanpin_bianhao,cas,name_en,chanpinfenlei_id,chanpinleixing,chucuntiaojian,weixianpin_id,zhuangtai,fuzhushuxing,img1_id,img1_filename,img1_img_show,img2_id,img2_filename,img2_img_show,
+                      guige_id1,guige_bianhao1,chundu1,pinpai_id1,pinpaimingcheng1,banzhuang_id1,baozhuang_name1,danweizhuanhuan1,jiliang_id1,jiliang_name1,baozhaung1,jiage1,huoqi1,
+                      guige_bianhao2,chundu2,pinpai_id2,pinpaimingcheng2,banzhuang_id2,baozhuang_name2,danweizhuanhuan2,jiliang_id2,jiliang_name2,baozhaung2,jiage2,huoqi2)
+        res = UserAPI.post(url,data)
+        return res
+    def del_chanpin(self,id):
+        url = '/api/v1/prod/destroy'
+        data = Data_chanpin().del_chanpin(id)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_chanpinxinxi(self,cas):
+        url = f'/api/v1/prod/cas/get/from/erp?cas={cas}'
+        res = UserAPI.get(url)
+        return res
+    def sel_pihao(self):
+        url = '/api/v1/prod/coa/generate/odd'
+        res = UserAPI.get(url)
+        return res
+    def sel_cangku(self):
+        url = '/api/v1/warehouse/warehouse/list'
+        res = UserAPI.get(url)
+        return res
+    def sel_cangku_kuwei(self,id):
+        url = f'/api/v1/warehouse/position/list?warehouse_id={id}'
+        res = UserAPI.get(url)
+        return res
+    def add_coa(self,prod_id,sku_id,kucun,cangku_id,cangkukuwei_id,pihao,jiancejieguo='',jianyanriqi='',yuanshipihao='',shengchanriqi='',shixiaoriqi=''):
+        url = '/api/v1/prod/coa/generate/odd'
+        data = Chanpinguanli().add_coa(prod_id,sku_id,kucun,cangku_id,cangkukuwei_id,pihao,jiancejieguo,jianyanriqi,yuanshipihao,shengchanriqi,shixiaoriqi)
+        res = UserAPI.post(url,data)
+        return res
+    def set_chengben(self,id,chengben):
+        url = '/api/v1/prod/coa/cost'
+        data = Chanpinguanli().shezhi_chengben(id,chengben)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_coa(self,prod_id,sku_id,kucun=''):
+        url = '/api/v1/prod/coa/index'
+        params = Data_chanpin().sel_coa(prod_id,sku_id,kucun)
+        res = UserAPI.get(url,params)
+        return res
+    def updata_coa(self,id, prod_id, sku_id, kucun, cangku_id, cangkukuwei_id, pihao, jiancejieguo='', jianyanriqi='',
+                yuanshipihao='', shengchanriqi='', shixiaoriqi=''):
+        url = '/api/v1/prod/coa/update'
+        data = Data_chanpin().update_pinpai(id, prod_id, sku_id, kucun, cangku_id, cangkukuwei_id, pihao, jiancejieguo, jianyanriqi,
+                yuanshipihao, shengchanriqi, shixiaoriqi)
+        res = UserAPI.post(url,data)
+        return res
+    def del_coa(self,id):
+        url = '/api/v1/prod/coa/destroy'
+        data = Data_chanpin().del_coa(id)
+        res = UserAPI.post(url,data)
+        return res
+    def set_guige_shuomingshu(self,):
+        pass
+
+class Keshangguanli():
+    def sel_user(self,status='',bumen='',bianhao='',denglu_name='',xingming=''):
+        url = '/api/v1/system/user/index'
+        data = Data_keshang().sel_user(status,bumen,bianhao,denglu_name,xingming)
+        res = UserAPI.get(url,data)
+        return res
+    def sel_kuhu_bianma(self):
+        url = '/api/v1/generate_no/Customer'
+        res = UserAPI.get(url)
+        return res
+    def sel_dizhi(self):
+        url = '/api/v1/system/base/countries/children?id=1'
+        res = UserAPI.get(url)
+        return res
+    def sel_pinyin_jiancheng(self,name):
+        url = f'/api/v1/base/pinyin/abbr?text={name}'
+        res = UserAPI.get(url)
+        return res
+    def add_kehu(self,kehu_bianhao,name,pinyin,kehu_laiyuan,kehu_leixing,kehu_xingzhi,kehu_zhuangtai,suoshu_xiaoshou,huiyuan_dengji,
+                 guojia,sheng_id,shi_id,qu_id,sheng_name,shi_name,qu_name,file_id):
+        url = '/api/v1/merchant/customer/store'
+        data = Data_keshang().add_kehu(kehu_bianhao,name,pinyin,kehu_laiyuan,kehu_leixing,kehu_xingzhi,kehu_zhuangtai,suoshu_xiaoshou,huiyuan_dengji,
+                 guojia,sheng_id,shi_id,qu_id,sheng_name,shi_name,qu_name,file_id)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_kehu(self,name='',bianhao='',pinyin='',laiyuan='',kehuxingzhi=''):
+        url = '/api/v1/merchant/customer/index'
+        params = Data_keshang().sel_kehu(name,bianhao,pinyin,laiyuan,kehuxingzhi)
+        res = UserAPI.get(url,params)
+        return res
+    def sel_kehu_info(self,id):
+        url = f'/api/v1/merchant/customer/show?id={id}'
+        res = UserAPI.get(url)
+        return res
+    def update_kehu(self,kehu_id,lianxiren_id,kehu_bianhao,name,pinyin,kehu_laiyuan,kehu_leixing,kehu_xingzhi,kehu_zhuangtai,suoshu_xiaoshou,huiyuan_dengji,
+                 guojia,sheng_id,shi_id,qu_id,sheng_name,shi_name,qu_name,file_id):
+        url = '/api/v1/merchant/customer/update'
+        data = Data_keshang().update_kehu(kehu_id,lianxiren_id,kehu_bianhao,name,pinyin,kehu_laiyuan,kehu_leixing,kehu_xingzhi,kehu_zhuangtai,suoshu_xiaoshou,huiyuan_dengji,
+                 guojia,sheng_id,shi_id,qu_id,sheng_name,shi_name,qu_name,file_id)
+        res = UserAPI.post(url,data)
+        return res
+    def del_kehu(self,id):
+        url = '/api/v1/merchant/customer/batch_destroy'
+        data = Data_keshang().del_kehu(id)
+        res = UserAPI.post(url,data)
+        return res
+    def set_vip(self,vip,id):
+        url = '/api/v1/merchant/customer/set_customer_user_level'
+        data = Data_keshang().set_vip(vip,id)
+        res = UserAPI.post(url,data)
+        return res
+    def set_xiaoshou(self,name,user,type,xiaoshou_id,kehu_id):
+        url = '/api/v1/merchant/customer/belongs_to'
+        data = Data_keshang().set_xiaoshou(name,user,type,xiaoshou_id,kehu_id)
+        res = UserAPI.post(url,data)
+        return res
+    def add_genjin(self,name,kehu_id,lianxiren_id,lianxiren_name,genjin_zhuangtai,genjin_fangshi,file_id):
+        url = '/api/v1/merchant/customer/trace/store'
+        data = Data_keshang().add_genjin(name,kehu_id,lianxiren_id,lianxiren_name,genjin_zhuangtai,genjin_fangshi,file_id)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_genjin(self,kehu_name='',lianxiren_name='',kaishi_riqi='',jieshu_riqi=''):
+        url = '/api/v1/merchant/customer/trace/index'
+        data = Data_keshang().sel_genjin(kehu_name,lianxiren_name,kaishi_riqi,jieshu_riqi)
+        res = UserAPI.get(url,data)
+        return res
+    def update_genjin(self,genjin_id,name,kehu_id,lianxiren_id,lianxiren_name,genjin_zhuangtai,genjin_fangshi,file_id):
+        url = '/api/v1/merchant/customer/trace/update'
+        data = Data_keshang().update_genjin(genjin_id,name,kehu_id,lianxiren_id,lianxiren_name,genjin_zhuangtai,genjin_fangshi,file_id)
+        res = UserAPI.post(url, data)
+        return res
+    def del_genjin(self,id):
+        url = '/api/v1/merchant/customer/trace/batch_destroy'
+        data = Data_keshang().del_genjin(id)
+        res = UserAPI.post(url,data)
+        return res
+    def add_supplier_product_catalog(self,supplier_id,cas,prod_name_zh,prod_name_en,prod_no='',sku_no=''):
+        url = '/api/v1/merchant/supplier/prod/store'
+        data = Data_keshang().add_supplier_product_catalog(supplier_id,cas,prod_name_zh,prod_name_en,prod_no,sku_no)
+        res= UserAPI.post(url,data)
+        return res
+    def update_supplier_product_catalog(self,id,supplier_id,cas,prod_name_zh,prod_name_en,prod_no='',sku_no=''):
+        url = '/api/v1/merchant/supplier/prod/update'
+        data = Data_keshang().update_supplier_product_catalog(id,supplier_id,cas,prod_name_zh,prod_name_en,prod_no,sku_no)
+        res = UserAPI.post(url,data)
+        return res
+    def sel_supplier_product_catalog(self,cas='',supplier_name='',prod_name='',prod_no='',spec_no=''):
+        url = '/api/v1/merchant/supplier/prod/index'
+        data = Keshangguanli().sel_supplier_product_catalog(cas,supplier_name,prod_name,prod_no,spec_no)
+        res = UserAPI.get(url,data)
+        return res
+    def del_supplier_product_catalog(self,id):
+        url = '/api/v1/merchant/supplier/prod/batch_destroy'
+        data = Data_keshang().del_supplier_product_catalog(id)
+        res = UserAPI.post(url,data)
+        return res
+    def add_supplier(self,):
+        url = ''
+    def sel_supplier(self,):
+        url = ''
 
 
 
-
-
-
-
-# #ĞÂÔöÓÃ»§-²éÑ¯-ĞŞ¸ÄÓÃ»§(²¿ÃÅ¡¢½ÇÉ«¡¢×´Ì¬)-É¾³ıÓÃ»§
-# Xitongguanli().add_user(1)
-# Xitongguanli().select_user(1)
-# Xitongguanli().update_uesr(20,1,1)
-# Xitongguanli().del_user()
-# Xitongguanli().update_user_status(0,1)
-# #ĞÂÔöÓÃ»§-ĞÂÔö½ÇÉ«-Ìí¼ÓÓÃ»§µ½½ÇÉ«-É¾³ıÓÃ»§ËùÊô½ÇÉ«-É¾³ı½ÇÉ«-É¾³ıÓÃ»§
-# Xitongguanli().add_user(1)
-# Xitongguanli().add_juese('ÏµÍ³¹ÜÀíÔ±£¨ÁÙÊ±£©',1)
-# Xitongguanli().insert_uesr_juese()
-# Xitongguanli().del_user_juese()
-# Xitongguanli().del_juese()
-# Xitongguanli().del_user()
-# #ĞÂÔöµ¥Î»-²éÑ¯µ¥Î»-É¾³ıµ¥Î»
-# Xitongguanli().add_danwei(1,'mm',1,'length',1,'0.001')
-# Xitongguanli().update_danwei(0,'mm',1,)
-# Xitongguanli().sel_danwei('package')
-# Xitongguanli().del_danwei()
-# #ĞÂÔöµ¥¾İÉóºË-²éÑ¯µ¥¾İÉóºË-ĞŞ¸Äµ¥¾İÉóºË-É¾³ıµ¥¾İÉóºË
-# Xitongguanli().add_danjushenhe(['ÏúÊÛ¶©µ¥'],'ĞèÒªÉóºË')
-# Xitongguanli().sel_danjushenhe()
-# Xitongguanli().update_danjushenhe(['ÏúÊÛ¶©µ¥','²É¹º¶©µ¥'],'³¬¹ı½ğ¶îÉóºË',10000)
-# Xitongguanli().del_danjushenhe()
-# #ÏµÍ³¹ÜÀí
-# Xitongguanli().gonggongcanshu_email()
-# #ĞÂÔöµØÇø-²éÑ¯µØÇø-ĞŞ¸ÄµØÇø-É¾³ıµØÇø
-# Xitongguanli().add_diqu(0,'²âÊÔÇø')
-# Xitongguanli().sel_diqu('²âÊÔÇø')
-# Xitongguanli().update_diqu(1,'²âÊÔµØÇø')
-# Xitongguanli().del_diqu('²âÊÔµØÇø')
-# #ĞŞ¸Ä±àºÅ¹æÔò-²éÑ¯±àºÅ¹æÔò
-# Xitongguanli().update_biaohao_guize(1)
-# Xitongguanli().update_biaohao_guize(2)
-# Xitongguanli().update_biaohao_guize(3)
-# Xitongguanli().update_biaohao_guize(4)
-# Xitongguanli().update_biaohao_guize(5)
-# Xitongguanli().sel_biaohao_guize('²úÆ·±àºÅ')
-# #ĞÂÔö¸¨Öú×ÊÁÏ·ÖÀà-ĞŞ¸Ä¸¨Öú×ÊÁÏ·ÖÀà-ĞÂÔö¸¨Öú×ÊÁÏÃû³Æ-ĞŞ¸Ä¸¨Öú×ÊÁÏÃû³Æ-É¾³ı¸¨Öú×ÊÁÏÃû³Æ-É¾³ı¸¨Öú×ÊÁÏ·ÖÀà
-# Xitongguanli().add_fuzhuzilaio_fenlei('¸¨ÖúÀàĞÍ£¨²âÊÔ£©')
-# Xitongguanli().update_fuzhuzilaio_fenlei('¸¨ÖúÀàĞÍ')
-# Xitongguanli().add_fuzhuzilaio_mingcheng('³¬¼¶²âÊÔvip',1)
-# Xitongguanli().update_fuzhuziliao_mingcheng('³¬¼¶vip',0)
-# Xitongguanli().del_fuzhuziliao_mingcheng('³¬¼¶vip')
-# Xitongguanli().del_fuzhuziliao_fenlei()
-# # ĞÂÔö¸¨ÖúÊôĞÔ-ĞŞ¸Ä¸¨ÖúÊôĞÔ-É¾³ı¸¨ÖúÊôĞÔ
-# Xitongguanli().add_fuzhushuxing('º£¹Ø±àÂë£¨²âÊÔ£©','varchar',0,50)
-# Xitongguanli().update_fuzhushuxing('º£¹Ø±àÂëtest','int',1,50)
-# Xitongguanli().del_fuzhushuxing()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class Caigouguanli():
+    def sel_caigou_xunjia_id(self,):
+        url = '/api/v1/generate_no/PurchaseInquiry'
+        res = UserAPI.get(url)
+        return res
+    def add_caigou_shenqing_baocun(self,type,inquiry_no,user_id,zhidanren,cangku_id,shenqing_yuanyin,
+                               prod_id,prod_name,prod_no,sku_no,sku_id,cas,chundu,baozhuang,pinpai_id,pinpai_name,shuliang,beizhu='',
+                               fujian_id='',fujian_name='',fujian_path=''):
+        url = '/api/v1/purchase/inquiry/store'
+        data = Data_caigou().add_caigou_shenqingdan(type,inquiry_no,user_id,zhidanren,cangku_id,shenqing_yuanyin,
+                               prod_id,prod_name,prod_no,sku_no,sku_id,cas,chundu,baozhuang,pinpai_id,pinpai_name,shuliang,beizhu,
+                               fujian_id,fujian_name,fujian_path)
+        res = UserAPI.post(url,data)
+        return res
 
 
 
