@@ -5,10 +5,10 @@ class MySQLHelper:
     def __init__(self):
         #连接mysql
         self.connection = pymysql.connect(
-            host= '192.168.22.141',
+            host= '121.196.232.124',
             port= 3306,
             user= 'root',
-            password= 'jing.1751',
+            password= '******',
             database= 'jws',
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
