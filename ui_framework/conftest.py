@@ -82,7 +82,8 @@ def pytest_runtest_makereport(item, call):
 class WebAutomation:
     def __init__(self, driver):
         self.driver = driver
-    # 点击
+
+    # 点击，class有多层，示例：.btn_add.mouse
     def selenium_click(self, types, element, index=None):
         if index is None:
             next_btn = self.driver.find_element(types, element)
@@ -90,6 +91,7 @@ class WebAutomation:
         else:
             next_btn = self.driver.find_elements(types, element)[int(index)]
             self.driver.execute_script("arguments[0].click();", next_btn)
+
     # 输入
     def selenium_send(self, types, element, text, index=None):
         if index is None:
@@ -98,7 +100,8 @@ class WebAutomation:
         else:
             next_btn = self.driver.find_elements(types, element)[index]
             self.driver.execute_script("arguments[0].value = arguments[1]", next_btn, text)
-    # 点击
+
+    # 点击 class有多层，示例：.btn_add.mouse
     def jquery_click(self, element, index=None):
         if index is None:
             self.driver.execute_script(f"return $('{element}')[0].click()")
@@ -109,6 +112,7 @@ class WebAutomation:
                 element_to_click.click()
             else:
                 print(f"Index {index} 超出索引范围.")
+
     # 输入文本
     def jquery_input_text(self, element, text=None, index=None):
         if index is None:
@@ -120,6 +124,7 @@ class WebAutomation:
                 self.driver.execute_script(f"arguments[0].value = '{text}';", element_to_input)
             else:
                 print(f"Index {index} 超出索引范围.")
+
     # 悬停
     def hover(self, types, element, index=None):
         if index is None:
@@ -128,6 +133,7 @@ class WebAutomation:
         else:
             but = self.driver.find_elements(types, element)[index]
             ActionChains(self.driver).move_to_element(but).perform()
+
     # 判断元素是否存在
     def check_element_presence(self, types, element, index=None):
         if index is None:
@@ -142,6 +148,7 @@ class WebAutomation:
                 return True
             except (NoSuchElementException, IndexError):
                 return False
+
     # 获取文本内容
     def text_content(self, types, element, index=None):
         if index is None:
@@ -150,40 +157,56 @@ class WebAutomation:
         else:
             info = self.driver.find_elements(types, element)[index].text
             return info
-    # 切入ifram框
-    def cut_in_ifram(self,type,element,index=None):
+
+    # 切入ifram框，一般情况
+    def cut_in_ifram(self, types, element, index=None):
         if index is None:
-            self.driver.switch_to.frame(self.driver.find_element(type, element))
+            self.driver.switch_to.frame(self.driver.find_element(types, element))
         else:
-            self.driver.switch_to.frame(self.driver.find_elements(type, element)[int(index)])
+            self.driver.switch_to.frame(self.driver.find_elements(types, element)[int(index)])
+
+    # 切入ifram框，特殊情况
+    def cut_in_ifram_not_unique(self, types, element, index=None):
+        if index is None:
+            parent_element = self.driver.find_element(types, element)
+        else:
+            parent_element = self.driver.find_elements(types, element)[int(index)]
+        self.driver.switch_to.frame(parent_element.find_element(By.TAG_NAME, 'iframe'))
+
     # 切出ifram
     def cut_out_ifram(self):
         self.driver.switch_to.default_content()
+
     # 下拉选项框
-    def select(self,type,element,index,class_index=None):
+    def select(self, types, element, index, class_index=None):
         if class_index is None:
-            Select(self.driver.find_element(type,element)).select_by_index(int(index))
+            Select(self.driver.find_element(types, element)).select_by_index(int(index))
         else:
-            Select(self.driver.find_elements(type, element)[int(class_index)]).select_by_index(int(index))
+            Select(self.driver.find_elements(types, element)[int(class_index)]).select_by_index(int(index))
+
     # 显示等待
-    def wait(self,type,element):
-        WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((type, element)))
+    def wait(self, types, element):
+        WebDriverWait(self.driver, 20).until(EC.presence_of_all_elements_located((types, element)))
+
     # 切换窗口
-    def switch_windows(self,index):
+    def switch_windows(self, index):
         self.driver.switch_to.window(self.driver.window_handles[int(index)])
+
     # 打开第二个网页
-    def opens_new_tab(self,url,index):
+    def opens_new_tab(self, url, index):
         self.driver.execute_script(f"window.open('{url}');")
         self.driver.switch_to.window(self.driver.window_handles[int(index)])
+
     # 界面上下滑动
-    def up_down_slide(self,bili):
+    def up_down_slide(self, bili):
         # bili为0表示滑动到页面最上方，1为最下方，0.65为页面从上到下的65%处,范围在0-1
         self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight * {bili});")  # 滑动到屏幕57%处
+
     # 元素滑动
-    def element_slide(self,type,element,zuoyou,sahngxia,index=None):
+    def element_slide(self, types, element, zuoyou, sahngxia, index=None):
         if index is None:
             # 获取要操作的元素
-            ele = self.driver.find_element(type,element)
+            ele = self.driver.find_element(types, element)
             # 创建一个ActionChains对象
             '''
                     上滑移动50个像素 move_by_offset( 0,-50)
@@ -193,7 +216,7 @@ class WebAutomation:
             '''
             ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, sahngxia).perform()
         else:
-            ele = self.driver.find_elements(type, element)[int(index)]
+            ele = self.driver.find_elements(types, element)[int(index)]
             ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, sahngxia).perform()
 
 def update_cookies(driver,username):
