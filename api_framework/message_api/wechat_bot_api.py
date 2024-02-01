@@ -1,5 +1,3 @@
-#coding=gbk
-import sys
 import time,requests,json,base64,hashlib
 from urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -10,70 +8,74 @@ headers = {
     }
 
 class Robot():
-    def APIwenben(self,text,name=None): #qywx().APIwenben('test',["shangguanyi"])
-        #ÎÄ±¾ÏûÏ¢
+    def APIwenben(self,text,name): #qywx().APIwenben('test',["shangguanyi"])
+        #æ–‡æœ¬æ¶ˆæ¯
         wenben = json.dumps({
             "msgtype": "text",
             "text": {
                 "content": text,
-                "mentioned_list":name, #@ ·Ç±ØÌî
-                #"mentioned_mobile_list":["13848886443","@all"] #ÊÖ»úºÅÁĞ±í ·Ç±ØÌî
+                "mentioned_list":name, #@ éå¿…å¡«
+                #"mentioned_mobile_list":["13848886443","@all"] #æ‰‹æœºå·åˆ—è¡¨ éå¿…å¡«
             }
         })
-        requests.packages.urllib3.disable_warnings()    #¹Ø±ÕĞ£Ñé
+        requests.packages.urllib3.disable_warnings()    #å…³é—­æ ¡éªŒ
         reqwenben = requests.request('POST',url=url,headers=headers,data=wenben,verify=False)
-        print('·¢ËÍ³É¹¦',reqwenben.text)
+        print('æ–‡æœ¬æ¶ˆæ¯å‘é€',reqwenben.text)
 
     def APItupian(self,file): #qywx().qywx.APItupian(file)
-        with open(file, 'rb') as f:  # ÒÔ¶ş½øÖÆ¶ÁÈ¡Í¼Æ¬
-            # ×ª»¯base64±àÂë¸ñÊ½
-            data = f.read()  # ¶ÁÈ¡Õû¸öÎÄ¼ş
-            encode_str = base64.b64encode(data)  # µÃµ½ byte ±àÂëµÄÊı¾İ
-            # print(str(encode_str, 'utf-8'))  # ÖØĞÂ±àÂëÊı¾İ
-
-            # Éú³Émd5
-            md = hashlib.md5()
-            md.update(data)  # ÔÚmdÉÏÃæ¸üĞÂËùĞèÒª¼ÓÃÜµÄ×Ö·û´®
-            res1 = md.hexdigest()  # »ñÈ¡¼ÓÃÜºóµÄ×Ö·û´®
-            f.close()
-        #·¢ËÍÍ¼Æ¬
+        with open(file, 'rb') as f:  # ä»¥äºŒè¿›åˆ¶è¯»å–å›¾ç‰‡
+            file_content = f.read()
+            # è®¡ç®—æ–‡ä»¶çš„MD5å“ˆå¸Œå€¼
+            md5_hash = hashlib.md5(file_content).hexdigest()
+            # å°†æ–‡ä»¶å†…å®¹è¿›è¡ŒBase64ç¼–ç 
+            base64_encoded = base64.b64encode(file_content).decode('utf-8')
+        #å‘é€å›¾ç‰‡
         tupian = json.dumps({
             "msgtype": "image",
             "image": {
-                "base64": str(encode_str, 'utf-8'),
-                "md5": res1
+                "base64": base64_encoded,
+                "md5": md5_hash
             }
         })
-        requests.packages.urllib3.disable_warnings()    #¹Ø±ÕĞ£Ñé
+        requests.packages.urllib3.disable_warnings()    #å…³é—­æ ¡éªŒ
         restupian = requests.request("POST", url,headers=headers, data=tupian,verify=False)
-        print('·¢ËÍ³É¹¦',restupian.text)
-
+        print('å›¾ç‰‡æ¶ˆæ¯å‘é€',restupian.text)
     def APIwenjian(self,file): #qywx().APIwenjian(r'/Users/v_jingwenshuo/Desktop/dingdan.txt')
-        id_url = f'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={key}&type=file'  # ÉÏ´«ÎÄ¼ş½Ó¿ÚµØÖ·
+        id_url = f'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={key}&type=file'  # ä¸Šä¼ æ–‡ä»¶æ¥å£åœ°å€
         headers = {
             'Content-Type': 'multipart/form-data'
         }
         data = {
-            'file': open(file, 'rb')# ÒÔ¶ş½øÖÆ¸ñÊ½¶ÁÈ¡ÎÄ¼ş
+            'file': open(file, 'rb')# ä»¥äºŒè¿›åˆ¶æ ¼å¼è¯»å–æ–‡ä»¶
         }
-        response = requests.post(url=id_url,headers=headers,files=data,verify=False)  # post ÇëÇóÉÏ´«ÎÄ¼ş
-        json_res = response.json()  # ·µ»Ø×ªÎªjson
+        requests.packages.urllib3.disable_warnings()    #å…³é—­æ ¡éªŒ
+        response = requests.post(url=id_url,headers=headers,files=data,verify=False)  # post è¯·æ±‚ä¸Šä¼ æ–‡ä»¶
+        json_res = response.json()  # è¿”å›è½¬ä¸ºjson
         #print(json_res)
-        media_id = json_res['media_id']  # ÌáÈ¡·µ»ØID
-        data = {"msgtype": "file", "file": {"media_id": media_id}}  # post json
-        requests.packages.urllib3.disable_warnings() #¹Ø±ÕĞ£Ñé
-        r = requests.post(url=url, json=data,verify=False)  # postÇëÇóÏûÏ¢
-        req = r.json()
-        print('·¢ËÍ³É¹¦',req)
-
-
-
-
-
-#Robot().APIwenben('test',["shangguanyi",'@all'])
-#Robot().APIwenjian(r'E:\PycharmProjects\lÁÙÊ±\conftest.py')
-
-
-
-
+        media_id = json_res['media_id']  # æå–è¿”å›ID
+        data = json.dumps({
+            "msgtype": "file",
+            "file":
+                {"media_id": media_id}
+        })  # post json
+        requests.packages.urllib3.disable_warnings() #å…³é—­æ ¡éªŒ
+        req = requests.post(url=url, data=data,verify=False)  # postè¯·æ±‚æ¶ˆæ¯
+        print('æ–‡ä»¶æ¶ˆæ¯å‘é€',req.json())
+    def APItuwen(self,title,link_url,tupian=None,miaoshu=None):
+        tuwen = json.dumps({
+            "msgtype": "news",
+            "news": {
+               "articles" : [
+                   {
+                       "title" : title,
+                       "description" : miaoshu,
+                       "url" : link_url,
+                       "picurl" : tupian
+                   }
+                ]
+            }
+        }
+        )
+        res = requests.post(url=url,headers=headers,data=tuwen,verify=False)
+        print('å›¾æ–‡æ¶ˆæ¯å‘é€',res.json())
 
