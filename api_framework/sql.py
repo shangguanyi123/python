@@ -7,7 +7,7 @@ class MySQLHelper:
             host= '221.226.240.154',
             port= 3307,
             user= 'root',
-            password= 'Nj@qs1234',
+            password= '****',
             database= 'qso_erp',
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
