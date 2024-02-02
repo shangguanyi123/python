@@ -31,9 +31,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
         if report_path:
             pass
-            #Robot().APIwenjian(report_path)
+            #Robot().file_api(report_path)
     elif exitstatus == pytest.ExitCode.TESTS_FAILED: # 测试用例有运行失败的
         report_path = terminalreporter._session.config.option.htmlpath # 获取测试报告路径
         if report_path:
-            Robot().APIwenben('ichempro运行报错，请通过测试报告查看详情！！！')
-            Robot().APIwenjian(report_path)
+            Robot().text_api('ichempro运行报错，请通过测试报告查看详情！！！')
+            Robot().file_api(report_path)
