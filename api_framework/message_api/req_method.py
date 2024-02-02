@@ -45,9 +45,3 @@ class UserAPI:
         response = requests.delete(url=url, headers=Config.headers)
         # assert response.status_code == 200
         return response
-
-# url = f'/api/v1/prod/cas/index?page=1&page_size=10'
-# res = UserAPI.get(url)
-#
-# print(res.text)
-# print(res.headers)
