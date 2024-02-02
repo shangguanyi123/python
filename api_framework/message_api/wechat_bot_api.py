@@ -90,7 +90,7 @@ class Robot():
 
 
 # 调用示例
-# Robot().text_api('E:\PycharmProjects\ichempro\message_api\wechat_bot_api.py','shangguanyi')
+# Robot().text_api('test','shangguanyi')
 # Robot().img_api(r'C:\Users\shangguanyi\Desktop\上官一\后台\3.png')
 # Robot().file_api(r'E:\PycharmProjects\ichempro\message_api\wechat_bot_api.py')
 # Robot().img_text_api('标题','http://spider.aikonchem.com:9014/_nuxt/logo.8d52cbb2.png','http://spider.aikonchem.com:9014/_nuxt/logo.8d52cbb2.png','描述')
