@@ -203,7 +203,7 @@ class WebAutomation:
         self.driver.execute_script(f"window.scrollTo(0, document.body.scrollHeight * {bili});")  # 滑动到屏幕57%处
 
     # 元素滑动
-    def element_slide(self, types, element, zuoyou, sahngxia, index=None):
+    def element_slide(self, types, element, zuoyou, shangxia, index=None):
         if index is None:
             # 获取要操作的元素
             ele = self.driver.find_element(types, element)
@@ -214,10 +214,10 @@ class WebAutomation:
                     左滑移动50个像素 move_by_offset(-50, 0)
                     右滑移动50个像素 move_by_offset( 50, 0)
             '''
-            ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, sahngxia).perform()
+            ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, shangxia).perform()
         else:
             ele = self.driver.find_elements(types, element)[int(index)]
-            ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, sahngxia).perform()
+            ActionChains(self.driver).move_to_element(ele).move_by_offset(zuoyou, shangxia).perform()
 
 def update_cookies(driver,username):
     cookies = driver.get_cookies()
