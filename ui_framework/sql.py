@@ -8,7 +8,7 @@ class MySQLHelper:
             host= '45.33.49.209',
             port= 3306,
             user= 'root',
-            password= 'Ping170110ak',
+            password= '**********',
             database= 'a2b_new',
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor
