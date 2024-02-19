@@ -12,6 +12,7 @@ report_path = "./reports/iChemBio_report.html"  # 根据实际情况修改测试
 
 # 调用发送邮件和企业微信的方法
 if report_path:
-    Robot().APIwenjian(report_path)  # 企业微信
+    Robot().text_api('iChemBio线上环境报错，请及时通过测试报告产看详情','shangguanyi')
+    Robot().file_api(report_path)  # 企业微信
     #send_email([report_path])  # 邮件
 
