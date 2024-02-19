@@ -1,3 +1,5 @@
+#coding=gbk
+import sys
 import time,requests,json,base64,hashlib
 from urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -8,74 +10,87 @@ headers = {
     }
 
 class Robot():
-    def APIwenben(self,text,name): #qywx().APIwenben('test',["shangguanyi"])
+    def text_api(self,text,name=None):
         #文本消息
-        wenben = json.dumps({
+        data = json.dumps({
             "msgtype": "text",
             "text": {
                 "content": text,
-                "mentioned_list":name, #@ 非必填
+                "mentioned_list":[name],
                 #"mentioned_mobile_list":["13848886443","@all"] #手机号列表 非必填
             }
         })
         requests.packages.urllib3.disable_warnings()    #关闭校验
-        reqwenben = requests.request('POST',url=url,headers=headers,data=wenben,verify=False)
-        print('文本消息发送',reqwenben.text)
+        res = requests.request('POST',url=url,headers=headers,data=data,verify=False)
+        print('文本消息',res.text)
 
-    def APItupian(self,file): #qywx().qywx.APItupian(file)
-        with open(file, 'rb') as f:  # 以二进制读取图片
+    def img_api(self,file):
+        with open(file, 'rb') as f:
             # 转化base64编码格式
-            data = f.read()  # 读取整个文件
-            encode_str = base64.b64encode(data)  # 得到 byte 编码的数据
+            file_data = f.read()
+            encode_str = base64.b64encode(file_data)
             # print(str(encode_str, 'utf-8'))  # 重新编码数据
 
             # 生成md5
             md = hashlib.md5()
-            md.update(data)  # 在md上面更新所需要加密的字符串
-            res1 = md.hexdigest()  # 获取加密后的字符串
+            md.update(file_data)  # 在md上面更新所需要加密的字符串
+            md5 = md.hexdigest()  # 获取加密后的字符串
             f.close()
         #发送图片
-        tupian = json.dumps({
+        data = json.dumps({
             "msgtype": "image",
             "image": {
                 "base64": str(encode_str, 'utf-8'),
-                "md5": res1
+                "md5": md5
             }
         })
         requests.packages.urllib3.disable_warnings()    #关闭校验
-        restupian = requests.request("POST", url,headers=headers, data=tupian,verify=False)
-        print('图片消息发送',restupian.text)
+        res = requests.request("POST", url=url,headers=headers, data=data,verify=False)
+        print('图片消息',res.text)
 
-    def APIwenjian(self,file): #qywx().APIwenjian(r'/Users/v_jingwenshuo/Desktop/dingdan.txt')
-        id_url = f'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={key}&type=file'  # 上传文件接口地址
-        headers = {
+    def file_api(self,file):
+        file_url = f'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={key}&type=file'
+        headers_form = {
             'Content-Type': 'multipart/form-data'
         }
-        data = {
-            'file': open(file, 'rb')# 以二进制格式读取文件
+        file_data = {
+            'file': open(file, 'rb')
         }
-        requests.packages.urllib3.disable_warnings()    #关闭校验
-        response = requests.post(url=id_url,headers=headers,files=data,verify=False)  # post 请求上传文件
-        json_res = response.json()  # 返回转为json
-        #print(json_res)
-        media_id = json_res['media_id']  # 提取返回ID
+        file_response = requests.post(url=file_url,headers=headers_form,files=file_data,verify=False)
+        #print(file_response.json())
+
+        media_id = file_response.json()['media_id']
         data = json.dumps({
             "msgtype": "file",
-            "file":
-                {"media_id": media_id}
-        })  # post json
+            "file": {
+                "media_id": media_id
+            }
+        })
         requests.packages.urllib3.disable_warnings() #关闭校验
-        req = requests.post(url=url, data=data,verify=False)  # post请求消息
-        print('文件消息发送',req.json())
+        res = requests.post(url=url, headers=headers,data=data,verify=False)
+        print('文件消息',res.text)
+
+    def img_text_api(self, title, link_url, img_url=None, description=None):
+        data = json.dumps({
+            "msgtype": "news",
+            "news": {
+                "articles": [
+                    {
+                        "title": title,
+                        "description": description,
+                        "url": link_url, #点击图片后跳转的链接。
+                        "picurl": img_url #图文消息的图片链接
+                    }
+                ]
+            }
+        }
+        )
+        res = requests.post(url=url, headers=headers, data=data, verify=False)
+        print('图文消息', res.text)
 
 
-
-
-
-#Robot().APIwenben('test',["shangguanyi",'@all'])
-#Robot().APIwenjian(r'E:\PycharmProjects\数据站\report\report.html')
-
-
-
-
-
+# 调用示例
+# Robot().text_api('test','shangguanyi')
+# Robot().img_api(r'C:\Users\shangguanyi\Desktop\上官一\后台\3.png')
+# Robot().file_api(r'E:\PycharmProjects\ichempro\message_api\wechat_bot_api.py')
+# Robot().img_text_api('标题','http://spider.aikonchem.com:9014/_nuxt/logo.8d52cbb2.png','http://spider.aikonchem.com:9014/_nuxt/logo.8d52cbb2.png','描述')
