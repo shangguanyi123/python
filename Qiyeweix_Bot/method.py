@@ -1,3 +1,4 @@
+#encoding=utf8
 import hashlib
 import json,time,requests
 from sql import MySQLHelper
@@ -25,7 +26,7 @@ def fanyi(yuyan,text):
     url = "http://api.fanyi.baidu.com/api/trans/vip/translate"
     appid = '20220826001320662'
     salt = str(int(time.time()))
-    miyao = 'eEM7SXNeySFVJswm_MUf'
+    miyao = 'gCajhyd_lF2OUuVU2j8U'
     sign = appid + text + salt + miyao
     md5 = hashlib.md5()
     # 更新加密对象的内容
@@ -33,7 +34,7 @@ def fanyi(yuyan,text):
     # 获取加密结果
     sign_md5 = md5.hexdigest()
     params = {
-        'q': text,
+        'q': str(text),
         'from': 'auto',
         'to': 'zh' if yuyan == '汉语' else 'en' if yuyan == '英语' else 'jp' if yuyan == '日语' else 'cht' if yuyan == '繁体' else 'zh',
         'appid': appid,
@@ -42,8 +43,11 @@ def fanyi(yuyan,text):
     }
     response = requests.get(url, params=params)
     if response.status_code == 200:
-        print(response.json()['trans_result'][0]['dst'])
-        return response.json()['trans_result'][0]['dst']
+        if 'trans_result' in response.json():
+            print(response.json()['trans_result'][0]['dst'])
+            return response.json()['trans_result'][0]['dst']
+        else:
+            print(response.json())
+            return response.json()
     else:
         return response.json()
-
