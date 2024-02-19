@@ -52,7 +52,7 @@ def robot():
             agent_id = root.find('AgentID').text
             print('用户发送信息：', content)
             timestamp = str(int(time.time()))
-            if '叫' in content:
+            if content.startswith('叫') == True:
                 # 被动回复
                 content_info = content.split('叫')[1]
                 sReplyMsg = message(
@@ -64,7 +64,7 @@ def robot():
                 )
                 #加密函数
                 ret, sEncryptMsg = wxcpt.EncryptMsg(sReplyMsg, nonce, timestamp)
-            elif '翻译成' in content:
+            elif content.startswith('翻译成') == True:
                 # 被动回复
                 try:
                     yuyan = content.split('翻译成')[1].split('：')[0]
