@@ -45,39 +45,60 @@ def driver(request):
     return driver  # 将 WebDriver 对象返回，供测试函数使用。
 
 
-
 # 配置日志记录 其中%(asctime)s表示日志记录的时间，%(levelname)s表示日志级别，%(message)s表示日志消息内容。
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+@pytest.mark.hookwrapper
+def pytest_runtest_makereport(item):
+    """
+    测试失败时获取 WebDriver 对象并在 HTML 报告中嵌入截图。
+    """
+    # 获取pytest-html插件
+    pytest_html = item.config.pluginmanager.getplugin('html')
+    # 暂停当前函数的执行，等待测试用例执行完毕后再继续执行 目的：检查测试用例是否通过
+    outcome = yield
+    # 获取测试用例的执行结果
+    report = outcome.get_result()
+    # 检查测试报告对象中是否有一个名为 'extra' 的属性，如果有额外则获取其值，如果没有则将其设置为一个空列表 目的：为了确保在没有额外信息的情况下不会出现错误
+    extra = getattr(report, 'extra', [])
+    # 如果是测试函数的执行阶段（'call'）或者测试用例的准备阶段（'setup'），则执行后续操作
+    if report.when == 'call' or report.when == "setup":
 
-# 报错截图+日志
-# tryfirst=True 表示该钩子函数将在其他同类型的钩子函数之前被调用。如果多个钩子函数具有相同的名称和类型，则使用 tryfirst=True 的函数将首先被执行。
-# hookwrapper=True 表示该钩子函数是一个装饰生成器，允许你在测试过程中包装和修改执行流程。装饰生成器可以在执行前后执行额外的代码，还可以通过 yield 语句将控制权传递给其他钩子函数。
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    # 在测试函数执行结束后获取测试结果并进行处理
-    outcome = yield  # 使用yield 将控制权交给 pytest，然后等待测试函数执行完毕并获取测试结果。通过yield 返回一个生成器对象，outcome 可以用来获取测试结果。
-    rep = outcome.get_result()  # 通过outcome 对象的get_result() 方法获取测试结果。
-    now1 = time.strftime("%Y-%m-%d %H-%M-%S")  # 年月日时分秒
-    # 如果测试失败，则进行屏幕截图
-    if rep.when == "call" and rep.failed:  # 如果rep.when 的值为"call"（表示测试函数的调用阶段）并且rep.failed 为True（表示测试失败），则执行条件块中的代码。
-        try:
-            driver = item.funcargs["driver"]  # 通过item.funcargs 字典获取测试函数中的driver 对象。driver 是通过driver fixture 返回的 WebDriver 对象。
-            screenshot_dir = r".E:\venv3.8\India_data\error_screenshot"  # 截图保存目录
-            os.makedirs(screenshot_dir, exist_ok=True)  # 确保截图保存的目录存在。如果目录不存在，则创建目录。
-            screenshot_path = os.path.join(screenshot_dir,
-                                           "报错截图%s.png" % now1)  # 使用os.path.join() 方法将目录路径和截图文件名连接起来，得到完整的截图文件路径。
-            # screenshot = pyautogui.screenshot()
-            # screenshot.save(screenshot_path) #截图全屏 在无窗口模式下无用
-            driver.save_screenshot(screenshot_path)  # 调用 WebDriver 对象的save_screenshot() 方法保存屏幕截图到指定路径。
-            print("报错截图另存为:", screenshot_path)
-            logging.info("报错截图另存为：%s", screenshot_path)
-        except NoSuchElementException as e:
-            print("截图失败 无搜索元素异常", e)
-            logging.info("截图失败 无搜索元素异常：%s", e)
-        except Exception as e:
-            print("未能捕获屏幕截图:", e)
-            logging.info("未能捕获屏幕截图：%s", e)
+        # 检查测试用例是否标记为预期失败
+        xfail = hasattr(report, 'wasxfail')
+        # 判断执行结果（跳过、失败）以及是否标记为预期失败来决定是否执行后续操作
+        if (report.skipped and xfail) or (report.failed and not xfail):
+            driver = item.funcargs['driver']  # 获取 driver 对象
+            try:
+                # 截图
+                screenshot = driver.get_screenshot_as_png()
+                # 转码base64
+                encode_str = base64.b64encode(screenshot)
+                encoded_image = str(encode_str, 'utf-8')
+
+                # 将 base64 编码的图片嵌入到 HTML 报告中
+                html = f'''
+                <div>
+                    <img src="data:image/png;base64,{encoded_image}" id="screenshot_img" alt="screenshot" 
+                         style="width:304px;height:228px;cursor:pointer;" 
+                         onclick="openBase64()" align="right"/>
+                </div>
+                <script>
+                    function openBase64() {{
+                        const img = document.getElementById('screenshot_img');
+                        const win = window.open('', '_blank');
+                        win.document.write('<img src="' + img.src + '" style="width:100%; height:auto;">');
+                    }}
+                </script>
+                '''
+                extra.append(pytest_html.extras.html(html))
+            except NoSuchElementException as e:
+                logging.info("截图失败 无搜索元素异常：%s", e)
+            except Exception as e:
+                logging.info("截图失败：%s", e)
+
+        report.extra = extra
+
 
 class WebAutomation:
     def __init__(self, driver):
