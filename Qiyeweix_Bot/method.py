@@ -24,9 +24,9 @@ def message(to_user_name,from_user_name,msg_id,agent_id,content):
                 '''
 def fanyi(yuyan,text):
     url = "http://api.fanyi.baidu.com/api/trans/vip/translate"
-    appid = '20220826001320662'
+    appid = 'appid'
     salt = str(int(time.time()))
-    miyao = 'gCajhyd_lF2OUuVU2j8U'
+    miyao = '秘钥'
     sign = appid + text + salt + miyao
     md5 = hashlib.md5()
     # 更新加密对象的内容
