@@ -13,9 +13,10 @@ app = Flask(__name__)
 CORS(app)  # 允许所有跨域请求
 
 db = MySQLHelper()
-sToken = "yPHZzZXVskML7nxWeLrLNdVgM8n1qp"
-sEncodingAESKey = "gtZPw83P03zNNLo1wzygbgvK7n1w3QvRObp7M3WlCM5"
-sCorpID = "ww19bc368e963e6b44"
+#后台设置的三个字段
+sToken = "***"
+sEncodingAESKey = "***"
+sCorpID = "***"
 wxcpt = WXBizMsgCrypt(sToken, sEncodingAESKey, sCorpID)
 
 @app.route('/webhook/renzheng', methods=['GET', 'POST'])
